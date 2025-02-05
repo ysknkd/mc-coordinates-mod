@@ -14,6 +14,9 @@ import org.slf4j.LoggerFactory;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
+import com.bungggo.mc.storage.LocationDataStorage;
 
 public class McLocationClient implements ClientModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger("mc-location");
@@ -25,6 +28,9 @@ public class McLocationClient implements ClientModInitializer {
             "category.mc-location"
     ));
 
+    // ユーザー識別子に基づく LocationDataStorage のインスタンス
+    private static LocationDataStorage storage;
+
     private String savedMessage = "";
     private long messageDisplayTick = 0;
     private static final float MESSAGE_DURATION_TICKS = 40.0f; // 40 tick = 2秒 (20 tick/sec)
@@ -32,23 +38,23 @@ public class McLocationClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        // コマンド登録: /mc-location list でリスト表示をトグル
+        // コマンド登録: /ml でリスト表示をトグル
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
             dispatcher.register(literal("ml")
-                            .executes(context -> {
-                                MinecraftClient client = MinecraftClient.getInstance();
-                                client.execute(() -> {
-                                    LOGGER.info("LocationListScreen requested via command");
-                                    // コマンド実行時にチャットなどのスクリーンを閉じる
-                                    client.setScreen(null);
-                                    // 次の tick で LocationListScreen を表示するためのフラグを ON
-                                    showListOnCommand = true;
-                                });
-                                return 1;
-                            }));
+                    .executes(context -> {
+                        MinecraftClient client = MinecraftClient.getInstance();
+                        client.execute(() -> {
+                            LOGGER.info("LocationListScreen requested via command");
+                            // コマンド実行時にチャットなどのスクリーンを閉じる
+                            client.setScreen(null);
+                            // 次の tick で LocationListScreen を表示するためのフラグを ON
+                            showListOnCommand = true;
+                        });
+                        return 1;
+                    }));
         });
 
-        // Tick イベント：コマンド実行後に次のティックでスクリーンを表示する
+        // Tick イベント: 次のティックで LocationListScreen を表示
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (showListOnCommand && client.player != null && client.currentScreen == null) {
                 showListOnCommand = false;
@@ -58,6 +64,33 @@ public class McLocationClient implements ClientModInitializer {
         });
         ClientTickEvents.END_CLIENT_TICK.register(this::onEndTick);
         HudRenderCallback.EVENT.register(this::onHudRender);
+
+        // ログイン時にユーザー識別子から storage インスタンスを生成し、データをロード
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+            if (client.player != null) {
+                String userId = client.player.getUuidAsString();
+                LOGGER.info("ワールドにログインしたのでデータをロードします。userId: {}", userId);
+                storage = new LocationDataStorage(userId);
+                storage.load();
+            }
+        });
+
+        // ログアウト時に storage から保存処理を実施
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+            LOGGER.info("ワールドからログアウトしたのでデータを保存します。");
+            if (storage != null) {
+                storage.save();
+                storage = null;
+            }
+        });
+        
+        // クライアント終了時に保存（インスタンスがあれば）
+        ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
+            LOGGER.info("クライアント終了時にデータを保存します。");
+            if (storage != null) {
+                storage.save();
+            }
+        });
     }
 
     private void onEndTick(MinecraftClient client) {
