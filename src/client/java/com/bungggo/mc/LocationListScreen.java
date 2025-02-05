@@ -79,6 +79,18 @@ public class LocationListScreen extends Screen {
                 entry.pinned
             ));
 
+            // 「説明変更」ボタンを配置
+            final int DESC_BUTTON_WIDTH = 70;
+            int xDesc = xDelete - DESC_BUTTON_WIDTH - ICON_GAP;
+            this.addDrawableChild(
+                ButtonWidget.builder(Text.literal("説明変更"), button -> {
+                    // 説明変更用の画面へ遷移。生成時に対象エントリを渡す。
+                    MinecraftClient.getInstance().setScreen(new LocationDescriptionEditScreen(entry));
+                })
+                .dimensions(xDesc, rowY, DESC_BUTTON_WIDTH, ICON_SIZE)
+                .build()
+            );
+
             // 削除ボタン（右端、ゴミ箱アイコン「🗑」）
             this.addDrawableChild(
                 ButtonWidget.builder(Text.literal("🗑"), button -> {
@@ -114,23 +126,29 @@ public class LocationListScreen extends Screen {
             int rowY = topMargin + i * rowHeight;
             LocationEntry e = LocationDataManager.entries.get(i);
             // テキストを、アイコンと重ならない位置に垂直中央で描画
+            String locationText = e.text;
             context.drawText(
                 this.textRenderer,
-                e.text,
+                locationText,
                 TEXT_START_X,
-                rowY + (ICON_SIZE - this.textRenderer.fontHeight) / 2,
+                rowY + (ICON_SIZE / 2) - (this.textRenderer.fontHeight / 2),
                 0xFFFFFF,
-                false
+                true
             );
+
+             int locationTextWidth = this.textRenderer.getWidth(locationText);
+             int descriptionX = TEXT_START_X + locationTextWidth + 10; // ギャップ10px
+             context.drawText(
+                this.textRenderer,
+                e.description,
+                descriptionX,
+                rowY + (ICON_SIZE / 2) - (this.textRenderer.fontHeight / 2),
+                0xFFFFFF,
+                true);
         }
         
         // ウィジェット（ボタンなど）の描画
         super.render(context, mouseX, mouseY, delta);
-    }
-
-    @Override
-    public void tick() {
-        super.tick();
     }
 
     @Override
