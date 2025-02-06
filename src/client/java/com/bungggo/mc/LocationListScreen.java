@@ -47,9 +47,9 @@ public class LocationListScreen extends Screen {
         final int xDelete = this.width - ICON_SIZE - LEFT_MARGIN;
 
         // 各エントリごとにウィジェットを配置
-        for (int i = 0; i < LocationDataManager.entries.size(); i++) {
+        for (int i = 0; i < LocationDataManager.getEntries().size(); i++) {
             int rowY = topMargin + i * rowHeight;
-            LocationEntry entry = LocationDataManager.entries.get(i);
+            LocationEntry entry = LocationDataManager.getEntries().get(i);
 
             // お気に入りトグルボタン（左端、アイコン「★」）
             this.addDrawableChild(new ToggleIconButton(
@@ -113,20 +113,19 @@ public class LocationListScreen extends Screen {
         this.renderBackground(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 10, 0xFFFFFF);
         
-        // 定数（init() と同様）
         final int ICON_SIZE = 20;
         final int ICON_GAP = 4;
         final int LEFT_MARGIN = 10;
         final int topMargin = 20;
         final int rowHeight = ICON_SIZE + 4;
+        // 位置情報のテキスト描画開始位置：アイコンの右側
         final int TEXT_START_X = LEFT_MARGIN + 2 * (ICON_SIZE + ICON_GAP);
 
-        // 各エントリごとに、テキスト部分のみを描画（アイコン部分は各ボタンで表現済み）
-        for (int i = 0; i < LocationDataManager.entries.size(); i++) {
+        for (int i = 0; i < LocationDataManager.getEntries().size(); i++) {
             int rowY = topMargin + i * rowHeight;
-            LocationEntry e = LocationDataManager.entries.get(i);
-            // テキストを、アイコンと重ならない位置に垂直中央で描画
-            String locationText = e.text;
+            LocationEntry e = LocationDataManager.getEntries().get(i);
+            // 位置情報は getLocationText() で取得する
+            String locationText = e.getLocationText();
             context.drawText(
                 this.textRenderer,
                 locationText,
@@ -136,18 +135,19 @@ public class LocationListScreen extends Screen {
                 true
             );
 
-             int locationTextWidth = this.textRenderer.getWidth(locationText);
-             int descriptionX = TEXT_START_X + locationTextWidth + 10; // ギャップ10px
-             context.drawText(
+            int locationTextWidth = this.textRenderer.getWidth(locationText);
+            int descriptionX = TEXT_START_X + locationTextWidth + 10; // ギャップ10px
+            context.drawText(
                 this.textRenderer,
                 e.description,
                 descriptionX,
                 rowY + (ICON_SIZE / 2) - (this.textRenderer.fontHeight / 2),
                 0xFFFFFF,
-                true);
+                true
+            );
         }
         
-        // ウィジェット（ボタンなど）の描画
+        // 各種ウィジェットの描画
         super.render(context, mouseX, mouseY, delta);
     }
 
@@ -178,4 +178,4 @@ public class LocationListScreen extends Screen {
             }
         }
     }
-} 
+}
