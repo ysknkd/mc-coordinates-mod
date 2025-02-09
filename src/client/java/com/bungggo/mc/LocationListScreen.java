@@ -9,26 +9,41 @@ import net.minecraft.text.Text;
 import net.minecraft.client.gui.DrawContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.util.List;
 
 /**
- * リスト表示画面。
- * 全エントリを一覧表示し、各エントリのピン留め状態を
- * 一意なIDに基づいてトグルできます。
+ * 保存データ一覧画面。
+ * ページャー機能を用いて、エントリの位置情報と説明文を表示します。
+ * 画面下部の固定位置に、ページ数テキストの両側に "<" と ">" のボタンを配置します。
  */
 @Environment(EnvType.CLIENT)
 public class LocationListScreen extends Screen {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LocationListScreen.class);
+    // 一度に表示するエントリ数
+    private static final int ENTRIES_PER_PAGE = 6;
+    // 現在のページ番号 (0オリジン)
+    private int currentPage = 0;
 
     public LocationListScreen() {
         super(Text.literal("保存データ一覧"));
     }
 
+    // ページ番号を指定するコンストラクタ
+    public LocationListScreen(int currentPage) {
+        this();
+        this.currentPage = currentPage;
+    }
+
     @Override
     protected void init() {
         LOGGER.info("[LocationListScreen] init() called");
-        
-        // 画面下部に「閉じる」ボタン
+
+        List<LocationEntry> entries = LocationDataManager.getEntries();
+        int totalEntries = entries.size();
+        int totalPages = (totalEntries + ENTRIES_PER_PAGE - 1) / ENTRIES_PER_PAGE;
+
+        // 「閉じる」ボタン（下部中央よりさらに下に配置）
         this.addDrawableChild(
             ButtonWidget.builder(Text.literal("閉じる"), button -> {
                 MinecraftClient.getInstance().setScreen(null);
@@ -37,21 +52,55 @@ public class LocationListScreen extends Screen {
             .build()
         );
 
-        // 定数
+        // 固定のページャーエリア（下からのオフセットを固定）
+        final int paginationAreaY = this.height - 60;
+
+        // ページ情報テキスト
+        String pageInfo = (currentPage + 1) + " / " + totalPages;
+        int pageInfoWidth = this.textRenderer.getWidth(pageInfo);
+        int centerX = this.width / 2;
+        final int pagerButtonWidth = 20;
+        final int pagerButtonHeight = 20;
+        final int gap = 6; // ページ情報テキストとボタンとの間隔（以前より広めに設定）
+        
+        // 左側の "<" ボタン（先頭ページでなければ）
+        if (currentPage > 0) {
+            int leftButtonX = centerX - pageInfoWidth / 2 - pagerButtonWidth - gap;
+            this.addDrawableChild(
+                ButtonWidget.builder(Text.literal("<"), button -> {
+                    MinecraftClient.getInstance().setScreen(new LocationListScreen(currentPage - 1));
+                })
+                .dimensions(leftButtonX, paginationAreaY, pagerButtonWidth, pagerButtonHeight)
+                .build()
+            );
+        }
+
+        // 右側の ">" ボタン（最終ページでなければ）
+        if (currentPage < totalPages - 1) {
+            int rightButtonX = centerX + pageInfoWidth / 2 + gap;
+            this.addDrawableChild(
+                ButtonWidget.builder(Text.literal(">"), button -> {
+                    MinecraftClient.getInstance().setScreen(new LocationListScreen(currentPage + 1));
+                })
+                .dimensions(rightButtonX, paginationAreaY, pagerButtonWidth, pagerButtonHeight)
+                .build()
+            );
+        }
+
+        // 各エントリ用のウィジェット配置（アイコン部分のみ）
         final int ICON_SIZE = 20;
         final int ICON_GAP = 4;
         final int LEFT_MARGIN = 10;
         final int topMargin = 20;
-        final int rowHeight = ICON_SIZE + 4; // 例：20 + 4 = 24
-        // 削除ボタンは右端側に配置（右マージンも LEFT_MARGIN と同じ値）
-        final int xDelete = this.width - ICON_SIZE - LEFT_MARGIN;
+        final int rowHeight = ICON_SIZE + 4;
+        int startIndex = currentPage * ENTRIES_PER_PAGE;
+        int endIndex = Math.min(startIndex + ENTRIES_PER_PAGE, totalEntries);
+        for (int i = startIndex; i < endIndex; i++) {
+            int displayIndex = i - startIndex;
+            int rowY = topMargin + displayIndex * rowHeight;
+            LocationEntry entry = entries.get(i);
 
-        // 各エントリごとにウィジェットを配置
-        for (int i = 0; i < LocationDataManager.getEntries().size(); i++) {
-            int rowY = topMargin + i * rowHeight;
-            LocationEntry entry = LocationDataManager.getEntries().get(i);
-
-            // お気に入りトグルボタン（左端、アイコン「★」）
+            // お気に入りトグルボタン（左端、アイコン "★"）
             this.addDrawableChild(new ToggleIconButton(
                 LEFT_MARGIN,
                 rowY,
@@ -60,12 +109,12 @@ public class LocationListScreen extends Screen {
                 Text.literal("★"),
                 button -> {
                     entry.favorite = !entry.favorite;
-                    MinecraftClient.getInstance().setScreen(new LocationListScreen());
+                    MinecraftClient.getInstance().setScreen(new LocationListScreen(currentPage));
                 },
                 entry.favorite
             ));
 
-            // ピン留めトグルボタン（お気に入りボタンの右側、アイコン「📌」）
+            // ピン留めトグルボタン（お気に入りの右隣、アイコン "📌"）
             this.addDrawableChild(new ToggleIconButton(
                 LEFT_MARGIN + ICON_SIZE + ICON_GAP,
                 rowY,
@@ -74,33 +123,32 @@ public class LocationListScreen extends Screen {
                 Text.literal("📌"),
                 button -> {
                     entry.pinned = !entry.pinned;
-                    MinecraftClient.getInstance().setScreen(new LocationListScreen());
+                    MinecraftClient.getInstance().setScreen(new LocationListScreen(currentPage));
                 },
                 entry.pinned
             ));
 
-            // 「説明変更」ボタンを配置
+            // 「説明変更」ボタンの配置
             final int DESC_BUTTON_WIDTH = 70;
-            int xDesc = xDelete - DESC_BUTTON_WIDTH - ICON_GAP;
+            int xDesc = this.width - ICON_SIZE - LEFT_MARGIN - DESC_BUTTON_WIDTH - ICON_GAP;
             this.addDrawableChild(
                 ButtonWidget.builder(Text.literal("説明変更"), button -> {
-                    // 説明変更用の画面へ遷移。生成時に対象エントリを渡す。
                     MinecraftClient.getInstance().setScreen(new LocationDescriptionEditScreen(entry));
                 })
                 .dimensions(xDesc, rowY, DESC_BUTTON_WIDTH, ICON_SIZE)
                 .build()
             );
 
-            // 削除ボタン（右端、ゴミ箱アイコン「🗑」）
+            // 削除ボタン（右端、ゴミ箱アイコン "🗑"）
+            int xDelete = this.width - ICON_SIZE - LEFT_MARGIN;
             this.addDrawableChild(
                 ButtonWidget.builder(Text.literal("🗑"), button -> {
-                    // お気に入り状態の場合は削除不可
                     if (entry.favorite) {
                         LOGGER.info("お気に入りのエントリは削除できません: ");
                         return;
                     }
                     LocationDataManager.removeEntry(entry);
-                    MinecraftClient.getInstance().setScreen(new LocationListScreen());
+                    MinecraftClient.getInstance().setScreen(new LocationListScreen(currentPage));
                 })
                 .dimensions(xDelete, rowY, ICON_SIZE, ICON_SIZE)
                 .build()
@@ -110,44 +158,41 @@ public class LocationListScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        // 背景とタイトル描画
         this.renderBackground(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 10, 0xFFFFFF);
-        
-        final int ICON_SIZE = 20;
-        final int ICON_GAP = 4;
+
+        // 各エントリの位置情報と説明文を描画
+        List<LocationEntry> entries = LocationDataManager.getEntries();
+        int totalEntries = entries.size();
+        int startIndex = currentPage * ENTRIES_PER_PAGE;
+        int endIndex = Math.min(startIndex + ENTRIES_PER_PAGE, totalEntries);
+
         final int LEFT_MARGIN = 10;
         final int topMargin = 20;
+        final int ICON_SIZE = 20;
+        final int ICON_GAP = 4;
         final int rowHeight = ICON_SIZE + 4;
-        // 位置情報のテキスト描画開始位置：アイコンの右側
-        final int TEXT_START_X = LEFT_MARGIN + 2 * (ICON_SIZE + ICON_GAP);
+        int textX = LEFT_MARGIN + ICON_SIZE * 2 + ICON_GAP * 2 + 5;
 
-        for (int i = 0; i < LocationDataManager.getEntries().size(); i++) {
-            int rowY = topMargin + i * rowHeight;
-            LocationEntry e = LocationDataManager.getEntries().get(i);
-            // 位置情報は getLocationText() で取得する
-            String locationText = e.getLocationText();
-            context.drawText(
-                this.textRenderer,
-                locationText,
-                TEXT_START_X,
-                rowY + (ICON_SIZE / 2) - (this.textRenderer.fontHeight / 2),
-                0xFFFFFF,
-                true
-            );
-
-            int locationTextWidth = this.textRenderer.getWidth(locationText);
-            int descriptionX = TEXT_START_X + locationTextWidth + 10; // ギャップ10px
-            context.drawText(
-                this.textRenderer,
-                e.description,
-                descriptionX,
-                rowY + (ICON_SIZE / 2) - (this.textRenderer.fontHeight / 2),
-                0xFFFFFF,
-                true
-            );
+        for (int i = startIndex; i < endIndex; i++) {
+            int displayIndex = i - startIndex;
+            int rowY = topMargin + displayIndex * rowHeight;
+            LocationEntry entry = entries.get(i);
+            context.drawText(this.textRenderer, entry.getLocationText(), textX, rowY, 0xFFFFFF, true);
+            context.drawText(this.textRenderer, entry.description, textX, rowY + this.textRenderer.fontHeight, 0xFFFFFF, true);
         }
-        
-        // 各種ウィジェットの描画
+
+        // ページャーエリアは下部から固定（例：下から60px）
+        final int paginationAreaY = this.height - 60;
+        List<LocationEntry> allEntries = LocationDataManager.getEntries();
+        int totalEntriesAll = allEntries.size();
+        int totalPages = (totalEntriesAll + ENTRIES_PER_PAGE - 1) / ENTRIES_PER_PAGE;
+        String pageInfo = (currentPage + 1) + " / " + totalPages;
+        // ページテキストは、ボタンと同じ領域内で中央に配置
+        int textY = paginationAreaY + (20 - this.textRenderer.fontHeight) / 2;
+        context.drawCenteredTextWithShadow(this.textRenderer, pageInfo, this.width / 2, textY, 0xFFFFFF);
+
         super.render(context, mouseX, mouseY, delta);
     }
 
@@ -156,10 +201,7 @@ public class LocationListScreen extends Screen {
         return false;
     }
 
-    /**
-     * トグル状態を保持するアイコンボタン。
-     * 状態に応じて背景色を変え、選択時（押下状態）のビジュアルを維持して表示します。
-     */
+    // 内部クラス：トグル状態を保持するアイコンボタン
     private class ToggleIconButton extends ButtonWidget {
         private boolean toggled;
 
@@ -170,10 +212,9 @@ public class LocationListScreen extends Screen {
 
         @Override
         protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
-            // デフォルトのボタン描画
             super.renderWidget(context, mouseX, mouseY, delta);
-            // トグルONの場合、半透明のオーバーレイを追加して押下状態を表現
             if (!toggled) {
+                // トグルされていない場合、半透明オーバーレイを追加
                 context.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0x80000000);
             }
         }
