@@ -40,7 +40,7 @@ public final class LocationIndicatorRenderer implements HudRenderCallback {
         Matrix4f viewMatrix = computeViewMatrix(camera);
         Matrix4f viewProjMatrix = projectionMatrix.mul(viewMatrix, new Matrix4f());
 
-        // ピン画像の描画サイズ
+        // ピン画像の描画サイズ（元のサイズ）
         final int pinWidth = 16;
         final int pinHeight = 16;
 
@@ -49,7 +49,7 @@ public final class LocationIndicatorRenderer implements HudRenderCallback {
         final float period = 1000.0F;  // 2秒周期
         float t = (time % (long) period) / period;  // 0.0～1.0 に正規化
 
-        float minAlpha = 0.5F;  // 最小透明度（50%）
+        float minAlpha = 0.3F;  // 最小透明度（30%）
         float maxAlpha = 1.0F;  // 最大透明度（100%）
         float ease;
         if (t < 0.5F) {
@@ -65,24 +65,64 @@ public final class LocationIndicatorRenderer implements HudRenderCallback {
         int alphaInt = (int)(alphaValue * 255);
         int tintColor = (alphaInt << 24) | 0xFFFFFF;
 
+        // 各ピンごとに処理（サイズをカメラとの距離で調整）
         for (LocationEntry entry : LocationDataManager.getPinnedEntries()) {
             Optional<ScreenCoordinate> optionalCoord = calculateScreenCoordinate(entry, viewProjMatrix, screenWidth, screenHeight);
             if (!optionalCoord.isPresent()) continue;
             ScreenCoordinate coord = optionalCoord.get();
-            
-            // ピン画像のオフセット（例えば、画像の下部の先端を指すように）
-            int x = coord.x - pinWidth / 2;
-            int y = coord.y - pinHeight;
-            
+
+            // ピン位置のワールド座標（ブロック中央）を計算
+            float worldX = (float) (Math.floor(entry.x) + 0.5);
+            float worldY = (float) (Math.floor(entry.y) + 0.5);
+            float worldZ = (float) (Math.floor(entry.z) + 0.5);
+
+            // カメラからの距離を計算
+            Vec3d cameraPos = camera.getPos();
+            double distance = cameraPos.distanceTo(new Vec3d(worldX, worldY, worldZ));
+
+            // 距離に応じたスケールを計算（近いと最大、遠いと最小）
+            final double nearDistance = 10.0;   // この距離以下なら最大サイズ（scale = 1.0）
+            final double farDistance = 100.0;     // この距離以上なら最小サイズ
+            final float minScale = 0.4f;          // 最小スケール（40%）
+            final float maxScale = 1.0f;          // 最大スケール（100%）
+
+            float scale;
+            if (distance <= nearDistance) {
+                scale = maxScale;
+            } else if (distance >= farDistance) {
+                scale = minScale;
+            } else {
+                // near～far の間は線形補間で決定
+                scale = maxScale - (float)((distance - nearDistance) / (farDistance - nearDistance)) * (maxScale - minScale);
+            }
+
+            // マトリクス変換を利用して、テクスチャ全体をスケーリング描画する
+            context.getMatrices().push();
+            // 画面座標に合わせて平行移動
+            context.getMatrices().translate(coord.x, coord.y, 0);
+            // 距離に基づいたスケール倍率を適用
+            context.getMatrices().scale(scale, scale, 1.0F);
+            // テクスチャの下部中央が原点にくるようオフセット
+            int drawX = - pinWidth / 2;
+            int drawY = - pinHeight;
             context.drawTexture(
                 RenderLayer::getGuiTextured,
                 PIN_TEXTURE,
-                x, y,
+                drawX, drawY,
                 0.0F, 0.0F,
-                pinWidth, pinHeight,
+                pinWidth, pinHeight, // 常に元のテクスチャ全体を描画
                 pinWidth, pinHeight,
                 tintColor
             );
+            context.getMatrices().pop();
+
+            // インジケーター下に距離テキストを表示する
+            // 距離（ブロック数）を少数第1位まで表示
+            String distanceText = String.format("%.1f", distance);
+            int textColor = 0xAAFFFFFF; // 半透明の白色
+            int textWidth = client.textRenderer.getWidth(distanceText);
+            // 画面上の座標 coord はインジケーターの下端なので、そこからもう少し下に描画
+            context.drawText(client.textRenderer, distanceText, coord.x - textWidth / 2, coord.y + 8, textColor, false);
         }
     }
 
