@@ -52,9 +52,9 @@ public class McLocationClient implements ClientModInitializer {
     private boolean showListOnCommand = false;
 
     // プレイヤーの前回座標を保持
-    private static Double prevPlayerX = null;
-    private static Double prevPlayerY = null;
-    private static Double prevPlayerZ = null;
+    private static Double prevPlayerX = 0.0;
+    private static Double prevPlayerY = 0.0;
+    private static Double prevPlayerZ = 0.0;
     // 前回更新を行った tick
     private long lastPrevUpdateTick = 0;
 
@@ -83,6 +83,8 @@ public class McLocationClient implements ClientModInitializer {
 
         registerCommand();
         registerTickEvents();
+
+        LocationIndicatorRenderer.register();
         HudRenderCallback.EVENT.register(this::onHudRender);
     }
 
@@ -180,11 +182,13 @@ public class McLocationClient implements ClientModInitializer {
         if (client.player == null) {
             return;
         }
+
+        updatePrevPlayerCoordinates(client, client.player.getX(), client.player.getY(), client.player.getZ());
+
         // 描画処理：現在座標、ピン留めエントリ、保存メッセージ
         renderCurrentLocation(context, client);
         renderPinnedEntries(context, client);
         renderSavedMessage(context, client, tickCounter);
-        updatePrevPlayerCoordinates(client, client.player.getX(), client.player.getY(), client.player.getZ());
     }
 
     /**
@@ -236,7 +240,7 @@ public class McLocationClient implements ClientModInitializer {
             context.drawText(client.textRenderer, yStr, xPosition, yOffset, computedColorY, true);
             xPosition += client.textRenderer.getWidth(yStr);
 
-            String zStr = String.format(", Z: %.1f", pos.y);
+            String zStr = String.format(", Z: %.1f", pos.z);
             context.drawText(client.textRenderer, zStr, xPosition, yOffset, computedColorZ, true);
 
             // 現在の色を保存
