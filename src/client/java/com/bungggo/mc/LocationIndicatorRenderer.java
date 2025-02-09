@@ -17,6 +17,7 @@ import org.joml.Matrix4f;
 import net.minecraft.client.render.Camera;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Vector3f;
+import java.util.Optional;
 
 /**
  * 簡易版のインジケーターを HUD に描画します。
@@ -38,47 +39,87 @@ public final class LocationIndicatorRenderer implements HudRenderCallback {
         int screenHeight = context.getScaledWindowHeight();
         MatrixStack matrices = context.getMatrices();
 
-        SimpleOption<Integer> fov = client.options.getFov();
-        Matrix4f projectionMatrix = client.gameRenderer.getBasicProjectionMatrix(fov.getValue());
+        SimpleOption<Integer> fovOption = client.options.getFov();
+        Matrix4f projectionMatrix = client.gameRenderer.getBasicProjectionMatrix(fovOption.getValue());
         Camera camera = client.gameRenderer.getCamera();
+        Matrix4f viewMatrix = computeViewMatrix(camera);
+        Matrix4f viewProjMatrix = projectionMatrix.mul(viewMatrix, new Matrix4f());
+
+        final int size = 10;
+        final int color = 0xFFFF0000; // ARGB: 不透明な赤
+
+        // 各ピンのワールド座標からスクリーン座標へ変換して描画
+        for (LocationEntry entry : LocationDataManager.getPinnedEntries()) {
+            Optional<ScreenCoordinate> optionalCoord = calculateScreenCoordinate(entry, viewProjMatrix, screenWidth, screenHeight);
+            if (!optionalCoord.isPresent()) continue;
+            ScreenCoordinate coord = optionalCoord.get();
+            fill(matrices,
+                 coord.x - size / 2,
+                 coord.y - size / 2,
+                 coord.x + size / 2,
+                 coord.y + size / 2,
+                 color);
+        }
+    }
+
+    /**
+     * カメラの位置と回転情報からビュー行列を生成する
+     */
+    private static Matrix4f computeViewMatrix(Camera camera) {
         Vec3d camPos = camera.getPos();
         Vector3f eye = new Vector3f((float) camPos.x, (float) camPos.y, (float) camPos.z);
         Vector3f forward = new Vector3f(0, 0, -1);
         camera.getRotation().transform(forward);
         Vector3f up = new Vector3f(0, 1, 0);
         camera.getRotation().transform(up);
-        Matrix4f viewMatrix = new Matrix4f().lookAt(eye, new Vector3f(eye).add(forward), up);
-        Matrix4f viewProjMatrix = projectionMatrix.mul(viewMatrix, new Matrix4f());
+        return new Matrix4f().lookAt(eye, new Vector3f(eye).add(forward), up);
+    }
 
-        for (LocationEntry entry : LocationDataManager.getPinnedEntries()) {
-            double worldX = Math.floor(entry.x) + 0.5;
-            double worldY = Math.floor(entry.y) + 0.5;
-            double worldZ = Math.floor(entry.z) + 0.5;
+    /**
+     * LocationEntry からスクリーン座標を計算する
+     * カメラの背後にある場合は空を返す
+     */
+    private static Optional<ScreenCoordinate> calculateScreenCoordinate(LocationEntry entry, Matrix4f viewProjMatrix, int screenWidth, int screenHeight) {
+        float worldX = (float) (Math.floor(entry.x) + 0.5);
+        float worldY = (float) (Math.floor(entry.y) + 0.5);
+        float worldZ = (float) (Math.floor(entry.z) + 0.5);
 
-            org.joml.Vector4f pos = new org.joml.Vector4f((float) worldX, (float) worldY, (float) worldZ, 1.0f);
-            viewProjMatrix.transform(pos);
-            if (pos.w <= 0.0f) continue;
+        org.joml.Vector4f pos = new org.joml.Vector4f(worldX, worldY, worldZ, 1.0f);
+        viewProjMatrix.transform(pos);
+        if (pos.w <= 0.0f) return Optional.empty();
 
-            float ndcX = pos.x / pos.w;
-            float ndcY = pos.y / pos.w;
+        float ndcX = pos.x / pos.w;
+        float ndcY = pos.y / pos.w;
 
-            int indicatorX = (int) ((ndcX + 1.0f) * 0.5f * screenWidth);
-            int indicatorY = (int) ((1.0f - ndcY) * 0.5f * screenHeight);
+        int indicatorX = clamp((int) ((ndcX + 1.0f) * 0.5f * screenWidth), 0, screenWidth);
+        int indicatorY = clamp((int) ((1.0f - ndcY) * 0.5f * screenHeight), 0, screenHeight);
 
-            indicatorX = Math.max(0, Math.min(indicatorX, screenWidth));
-            indicatorY = Math.max(0, Math.min(indicatorY, screenHeight));
+        return Optional.of(new ScreenCoordinate(indicatorX, indicatorY));
+    }
 
-            int size = 10;
-            int color = 0xFFFF0000; // ARGB: 不透明な赤
-            fill(matrices,
-                 indicatorX - size / 2,
-                 indicatorY - size / 2,
-                 indicatorX + size / 2,
-                 indicatorY + size / 2,
-                 color);
+    /**
+     * 値を指定の範囲内にクランプする
+     */
+    private static int clamp(int value, int min, int max) {
+        return Math.max(min, Math.min(value, max));
+    }
+
+    /**
+     * スクリーン座標を保持する簡易クラス
+     */
+    private static class ScreenCoordinate {
+        final int x, y;
+
+        ScreenCoordinate(int x, int y) {
+            this.x = x;
+            this.y = y;
         }
     }
 
+    /**
+     * 指定した範囲に四角形を塗りつぶす
+     * ※ fill の内容は変更していません
+     */
     private static void fill(MatrixStack matrices, int x1, int y1, int x2, int y2, int color) {
         Matrix4f matrix = matrices.peek().getPositionMatrix();
         float a = (color >> 24 & 255) / 255F;
@@ -90,10 +131,10 @@ public final class LocationIndicatorRenderer implements HudRenderCallback {
         RenderSystem.defaultBlendFunc();
 
         BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
-        buffer.vertex(matrix, (float)x2, (float)y1, 0).color(r, g, b, a);
-        buffer.vertex(matrix, (float)x1, (float)y1, 0).color(r, g, b, a);
-        buffer.vertex(matrix, (float)x1, (float)y2, 0).color(r, g, b, a);
-        buffer.vertex(matrix, (float)x2, (float)y2, 0).color(r, g, b, a);
+        buffer.vertex(matrix, (float) x2, (float) y1, 0).color(r, g, b, a);
+        buffer.vertex(matrix, (float) x1, (float) y1, 0).color(r, g, b, a);
+        buffer.vertex(matrix, (float) x1, (float) y2, 0).color(r, g, b, a);
+        buffer.vertex(matrix, (float) x2, (float) y2, 0).color(r, g, b, a);
 
         RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
         RenderSystem.setShaderColor(r, g, b, a);
