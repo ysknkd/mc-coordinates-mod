@@ -1,6 +1,7 @@
 package com.bungggo.mc;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.ShaderProgramKeys;
@@ -118,40 +119,40 @@ public final class BeaconRenderer {
         BufferBuilder cubeBuffer = tess.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
 
         // 前面 (Z = +half)【青】
-        cubeBuffer.vertex(m, -half, bottomY, half).color(0, 0, 255, 255);
-        cubeBuffer.vertex(m, half, bottomY, half).color(0, 0, 255, 255);
-        cubeBuffer.vertex(m, half, topY,    half).color(0, 0, 255, 255);
-        cubeBuffer.vertex(m, -half, topY,   half).color(0, 0, 255, 255);
+        cubeBuffer.vertex(m, -half, bottomY, half).color(0, 0, 255, 128);
+        cubeBuffer.vertex(m, half, bottomY, half).color(0, 0, 255, 128);
+        cubeBuffer.vertex(m, half, topY,    half).color(0, 0, 255, 128);
+        cubeBuffer.vertex(m, -half, topY,   half).color(0, 0, 255, 128);
 
         // 背面 (Z = -half)【赤】
-        cubeBuffer.vertex(m, half, bottomY, -half).color(255, 0, 0, 255);
-        cubeBuffer.vertex(m, -half, bottomY, -half).color(255, 0, 0, 255);
-        cubeBuffer.vertex(m, -half, topY,   -half).color(255, 0, 0, 255);
-        cubeBuffer.vertex(m, half, topY,    -half).color(255, 0, 0, 255);
+        cubeBuffer.vertex(m, half, bottomY, -half).color(255, 0, 0, 128);
+        cubeBuffer.vertex(m, -half, bottomY, -half).color(255, 0, 0, 128);
+        cubeBuffer.vertex(m, -half, topY,   -half).color(255, 0, 0, 128);
+        cubeBuffer.vertex(m, half, topY,    -half).color(255, 0, 0, 128);
 
         // 左側面 (X = -half)【緑】
-        cubeBuffer.vertex(m, -half, bottomY, -half).color(0, 255, 0, 255);
-        cubeBuffer.vertex(m, -half, bottomY, half).color(0, 255, 0, 255);
-        cubeBuffer.vertex(m, -half, topY,    half).color(0, 255, 0, 255);
-        cubeBuffer.vertex(m, -half, topY,   -half).color(0, 255, 0, 255);
+        cubeBuffer.vertex(m, -half, bottomY, -half).color(0, 255, 0, 128);
+        cubeBuffer.vertex(m, -half, bottomY, half).color(0, 255, 0, 128);
+        cubeBuffer.vertex(m, -half, topY,    half).color(0, 255, 0, 128);
+        cubeBuffer.vertex(m, -half, topY,   -half).color(0, 255, 0, 128);
 
         // 右側面 (X = +half)【黄】
-        cubeBuffer.vertex(m, half, bottomY, half).color(255, 255, 0, 255);
-        cubeBuffer.vertex(m, half, bottomY, -half).color(255, 255, 0, 255);
-        cubeBuffer.vertex(m, half, topY,   -half).color(255, 255, 0, 255);
-        cubeBuffer.vertex(m, half, topY,    half).color(255, 255, 0, 255);
+        cubeBuffer.vertex(m, half, bottomY, half).color(255, 255, 0, 128);
+        cubeBuffer.vertex(m, half, bottomY, -half).color(255, 255, 0, 128);
+        cubeBuffer.vertex(m, half, topY,   -half).color(255, 255, 0, 128);
+        cubeBuffer.vertex(m, half, topY,    half).color(255, 255, 0, 128);
 
         // 上面 (Y = topY)【シアン】
-        cubeBuffer.vertex(m, -half, topY,   half).color(0, 255, 255, 255);
-        cubeBuffer.vertex(m, half, topY,    half).color(0, 255, 255, 255);
-        cubeBuffer.vertex(m, half, topY,   -half).color(0, 255, 255, 255);
-        cubeBuffer.vertex(m, -half, topY,  -half).color(0, 255, 255, 255);
+        cubeBuffer.vertex(m, -half, topY,   half).color(0, 255, 255, 128);
+        cubeBuffer.vertex(m, half, topY,    half).color(0, 255, 255, 128);
+        cubeBuffer.vertex(m, half, topY,   -half).color(0, 255, 255, 128);
+        cubeBuffer.vertex(m, -half, topY,  -half).color(0, 255, 255, 128);
 
         // 底面 (Y = bottomY)【マゼンタ】
-        cubeBuffer.vertex(m, -half, bottomY, -half).color(255, 0, 255, 255);
-        cubeBuffer.vertex(m, half, bottomY, -half).color(255, 0, 255, 255);
-        cubeBuffer.vertex(m, half, bottomY, half).color(255, 0, 255, 255);
-        cubeBuffer.vertex(m, -half, bottomY, half).color(255, 0, 255, 255);
+        cubeBuffer.vertex(m, -half, bottomY, -half).color(255, 0, 255, 128);
+        cubeBuffer.vertex(m, half, bottomY, -half).color(255, 0, 255, 128);
+        cubeBuffer.vertex(m, half, bottomY, half).color(255, 0, 255, 128);
+        cubeBuffer.vertex(m, -half, bottomY, half).color(255, 0, 255, 128);
 
         // シェーダー設定後、バッファ描画
         RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);

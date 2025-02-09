@@ -83,9 +83,9 @@ public class McLocationClient implements ClientModInitializer {
 
         registerCommand();
         registerTickEvents();
-//        HudRenderCallback.EVENT.register(this::onHudRender);
-        BeaconRenderer.register();
-//        Test3DRenderer.register();
+
+        LocationIndicatorRenderer.register();
+        HudRenderCallback.EVENT.register(this::onHudRender);
     }
 
     /**
