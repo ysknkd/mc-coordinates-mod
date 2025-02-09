@@ -18,6 +18,8 @@ import net.minecraft.client.render.Camera;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Vector3f;
 import java.util.Optional;
+import net.minecraft.util.Identifier;
+import net.minecraft.client.render.RenderLayer;
 
 /**
  * 簡易版のインジケーターを HUD に描画します。
@@ -25,6 +27,8 @@ import java.util.Optional;
  * 画面中心から一定距離の位置に四角形（赤色）として表示します。
  */
 public final class LocationIndicatorRenderer implements HudRenderCallback {
+
+    private static final Identifier PIN_TEXTURE = Identifier.of("mc-location", "textures/indicator/pin.png");
 
     public static void register() {
         HudRenderCallback.EVENT.register(new LocationIndicatorRenderer());
@@ -37,7 +41,6 @@ public final class LocationIndicatorRenderer implements HudRenderCallback {
 
         int screenWidth = context.getScaledWindowWidth();
         int screenHeight = context.getScaledWindowHeight();
-        MatrixStack matrices = context.getMatrices();
 
         SimpleOption<Integer> fovOption = client.options.getFov();
         Matrix4f projectionMatrix = client.gameRenderer.getBasicProjectionMatrix(fovOption.getValue());
@@ -45,20 +48,49 @@ public final class LocationIndicatorRenderer implements HudRenderCallback {
         Matrix4f viewMatrix = computeViewMatrix(camera);
         Matrix4f viewProjMatrix = projectionMatrix.mul(viewMatrix, new Matrix4f());
 
-        final int size = 10;
-        final int color = 0xFFFF0000; // ARGB: 不透明な赤
+        // ピン画像の描画サイズ
+        final int pinWidth = 16;
+        final int pinHeight = 16;
 
-        // 各ピンのワールド座標からスクリーン座標へ変換して描画
+        // onHudRender() 内で共通計算を行います
+        long time = System.currentTimeMillis();
+        final float period = 1000.0F;  // 2秒周期
+        float t = (time % (long) period) / period;  // 0.0～1.0 に正規化
+
+        float minAlpha = 0.5F;  // 最小透明度（50%）
+        float maxAlpha = 1.0F;  // 最大透明度（100%）
+        float ease;
+        if (t < 0.5F) {
+            // 前半：0～0.5 の範囲を正規化、easeInQuintで上昇
+            float progress = t / 0.5F;
+            ease = (float) Math.pow(progress, 5);
+        } else {
+            // 後半：0.5～1 の範囲は (1 - t) を正規化、easeInQuintで下降
+            float progress = (1.0F - t) / 0.5F;
+            ease = (float) Math.pow(progress, 5);
+        }
+        float alphaValue = minAlpha + ease * (maxAlpha - minAlpha);
+        int alphaInt = (int)(alphaValue * 255);
+        int tintColor = (alphaInt << 24) | 0xFFFFFF;
+
         for (LocationEntry entry : LocationDataManager.getPinnedEntries()) {
             Optional<ScreenCoordinate> optionalCoord = calculateScreenCoordinate(entry, viewProjMatrix, screenWidth, screenHeight);
             if (!optionalCoord.isPresent()) continue;
             ScreenCoordinate coord = optionalCoord.get();
-            fill(matrices,
-                 coord.x - size / 2,
-                 coord.y - size / 2,
-                 coord.x + size / 2,
-                 coord.y + size / 2,
-                 color);
+            
+            // ピン画像のオフセット（例えば、画像の下部の先端を指すように）
+            int x = coord.x - pinWidth / 2;
+            int y = coord.y - pinHeight;
+            
+            context.drawTexture(
+                RenderLayer::getGuiTextured,
+                PIN_TEXTURE,
+                x, y,
+                0.0F, 0.0F,
+                pinWidth, pinHeight,
+                pinWidth, pinHeight,
+                tintColor
+            );
         }
     }
 
@@ -114,34 +146,5 @@ public final class LocationIndicatorRenderer implements HudRenderCallback {
             this.x = x;
             this.y = y;
         }
-    }
-
-    /**
-     * 指定した範囲に四角形を塗りつぶす
-     * ※ fill の内容は変更していません
-     */
-    private static void fill(MatrixStack matrices, int x1, int y1, int x2, int y2, int color) {
-        Matrix4f matrix = matrices.peek().getPositionMatrix();
-        float a = (color >> 24 & 255) / 255F;
-        float r = (color >> 16 & 255) / 255F;
-        float g = (color >> 8  & 255) / 255F;
-        float b = (color       & 255) / 255F;
-
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-
-        BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
-        buffer.vertex(matrix, (float) x2, (float) y1, 0).color(r, g, b, a);
-        buffer.vertex(matrix, (float) x1, (float) y1, 0).color(r, g, b, a);
-        buffer.vertex(matrix, (float) x1, (float) y2, 0).color(r, g, b, a);
-        buffer.vertex(matrix, (float) x2, (float) y2, 0).color(r, g, b, a);
-
-        RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
-        RenderSystem.setShaderColor(r, g, b, a);
-
-        BufferRenderer.drawWithGlobalProgram(buffer.end());
-
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.disableBlend();
     }
 } 
