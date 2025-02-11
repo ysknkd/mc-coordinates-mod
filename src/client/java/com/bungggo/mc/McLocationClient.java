@@ -1,16 +1,32 @@
 package com.bungggo.mc;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider;
 import net.minecraft.client.render.*;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.MinecraftVersion;
 import net.minecraft.client.MinecraftClient;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.entity.vehicle.MinecartController;
+
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.bungggo.mc.event.KeyBindingEventHandler;
+import com.bungggo.mc.hud.LocationIndicatorRenderer;
+import com.bungggo.mc.model.LocationEntry;
+import com.bungggo.mc.network.LocationPayload;
+import com.bungggo.mc.screen.LocationListScreen;
+import com.bungggo.mc.store.LocationDataManager;
+
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
@@ -26,6 +42,7 @@ import java.util.Map;
  *   （前回との差分が縮まれば青、広がれば灰色、変化なければ前回の色を維持）
  * </p>
  */
+@Environment(EnvType.CLIENT)
 public class McLocationClient implements ClientModInitializer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("mc-location");
@@ -78,14 +95,32 @@ public class McLocationClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        // 永続化されたデータをロードする
-        LocationDataManager.load();
-
         registerCommand();
         registerTickEvents();
 
         LocationIndicatorRenderer.register();
         HudRenderCallback.EVENT.register(this::onHudRender);
+
+        // クライアント側の CLIENTBOUND 用ペイロード型を登録
+        PayloadTypeRegistry.playC2S().register(LocationPayload.ID, LocationPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(LocationPayload.ID, LocationPayload.CODEC);
+        
+        // グローバルレシーバーを登録してサーバーからブロードキャストされた LocationPayload を受信
+        ClientPlayNetworking.registerGlobalReceiver(LocationPayload.ID, (payload, context) -> {
+            // ネットワークスレッドからクライアントメインスレッドに切り替え
+            context.client().execute(() -> {
+                try {
+                    // 送られてきたバッファを LocationPayload の CODEC を使ってデコード
+                    LOGGER.info("ブロードキャストされた位置情報を受信: {} {} {} {}",
+                            payload.sender(), payload.x(), payload.y(), payload.z());
+                    
+                    // クライアント側で位置情報として取り込む処理（例：LocationDataManagerに追加）
+                    LocationDataManager.addEntry(new LocationEntry(payload.x(), payload.y(), payload.z(), payload.description()));
+                } catch (Exception e) {
+                    LOGGER.error("LocationPayload の受信・デコードに失敗しました", e);
+                }
+            });
+        });
     }
 
     /**
@@ -120,14 +155,12 @@ public class McLocationClient implements ClientModInitializer {
             }
         });
         // 位置保存キーおよびその他の Tick 処理
-        ClientTickEvents.END_CLIENT_TICK.register(this::onEndTick);
+        KeyBindingEventHandler.registerListener(SAVE_LOCATION_KEY, this::processSaveLocationKey);
 
         // ログイン時：必要に応じて個別のストレージ設定があれば実施
         net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
-            if (client.player != null) {
-                String userId = client.player.getUuidAsString();
-                LOGGER.info("ワールドにログインしたのでデータをロードします。userId: {}", userId);
-            }
+            LOGGER.info("ログインしたのでデータを読み込みます。");
+            LocationDataManager.load();
         });
 
         // ログアウト時：ストレージにデータを保存
@@ -144,33 +177,24 @@ public class McLocationClient implements ClientModInitializer {
     }
 
     /**
-     * Tick 時の処理を行う。
-     */
-    private void onEndTick(MinecraftClient client) {
-        processSaveLocationKey(client);
-    }
-
-    /**
      * 保存キー (G キー) が押された場合、現在位置を保存する。
      */
     private void processSaveLocationKey(MinecraftClient client) {
-        while (SAVE_LOCATION_KEY.wasPressed()) {
-            if (client.player == null) {
-                return;
-            }
-            double x = client.player.getX();
-            double y = client.player.getY();
-            double z = client.player.getZ();
+        if (client.player == null) {
+            return;
+        }
+        double x = client.player.getX();
+        double y = client.player.getY();
+        double z = client.player.getZ();
 
-            LOGGER.info("Location saved: " + String.format("X: %.1f, Y: %.1f, Z: %.1f", x, y, z));
-            // LocationDataManager にエントリ追加（内部で保存処理が実施される）
-            LocationDataManager.addEntry(new LocationEntry(x, y, z));
-            savedMessage = "Location saved!";
-            if (client.world != null) {
-                messageDisplayTick = client.world.getTime();
-            } else {
-                messageDisplayTick = System.currentTimeMillis() / 50;
-            }
+        LOGGER.info("Location saved: " + String.format("X: %.1f, Y: %.1f, Z: %.1f", x, y, z));
+        // LocationDataManager にエントリ追加（内部で保存処理が実施される）
+        LocationDataManager.addEntry(new LocationEntry(x, y, z));
+        savedMessage = "Location saved!";
+        if (client.world != null) {
+            messageDisplayTick = client.world.getTime();
+        } else {
+            messageDisplayTick = System.currentTimeMillis() / 50;
         }
     }
 
