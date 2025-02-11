@@ -1,4 +1,4 @@
-package com.bungggo.mc;
+package com.bungggo.mc.screen;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -9,6 +9,12 @@ import net.minecraft.text.Text;
 import net.minecraft.client.gui.DrawContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+
+import com.bungggo.mc.model.LocationEntry;
+import com.bungggo.mc.network.LocationPayload;
+import com.bungggo.mc.store.LocationDataManager;
+
 import java.util.List;
 
 /**
@@ -127,6 +133,29 @@ public class LocationListScreen extends Screen {
                 },
                 entry.pinned
             ));
+
+            // シェアボタン（ピン留めボタンの横に配置）
+            int xShare = LEFT_MARGIN + (ICON_SIZE + ICON_GAP) * 2;
+            this.addDrawableChild(
+                ButtonWidget.builder(Text.literal("🔗"), button -> {
+                    // クライアント側で LocationPayload を作成してサーバーへ送信
+                    var client = MinecraftClient.getInstance();
+                    if (client.player != null) {
+                        // 送信者は現在のクライアントプレイヤーの UUID を使用
+                        LocationPayload payload = new LocationPayload(
+                            client.player.getUuid(),
+                            entry.x,
+                            entry.y,
+                            entry.z,
+                            entry.description
+                        );
+                        // サーバーへ送信する（サーバー側で受信し、ブロードキャスト処理を行います）
+                        ClientPlayNetworking.send(payload);
+                    }
+                })
+                .dimensions(xShare, rowY, ICON_SIZE, ICON_SIZE)
+                .build()
+            );
 
             // 「説明変更」ボタンの配置
             final int DESC_BUTTON_WIDTH = 70;

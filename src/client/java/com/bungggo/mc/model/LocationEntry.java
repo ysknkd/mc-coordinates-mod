@@ -1,4 +1,4 @@
-package com.bungggo.mc;
+package com.bungggo.mc.model;
 
 /**
  * 位置データのエントリ。

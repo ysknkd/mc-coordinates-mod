@@ -3,16 +3,12 @@ package com.bungggo.mc;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Uuids;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.bungggo.mc.network.LocationPayload;
 
 /**
  * サーバー用の位置情報共有モッド
@@ -25,14 +21,6 @@ import org.slf4j.LoggerFactory;
  */
 public class McLocationServer implements DedicatedServerModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger("mc-location-server");
-
-    /**
-     * この main メソッドはテスト実行用です。
-     * （Fabric 環境下では使用されず、DedicatedServerModInitializer の onInitializeServer() が呼ばれます）
-     */
-    public static void main(String[] args) {
-        System.out.println("【テストモード】McLocation Server mod を開始します…");
-    }
 
     @Override
     public void onInitializeServer() {
@@ -70,26 +58,5 @@ public class McLocationServer implements DedicatedServerModInitializer {
                 }
             });
         });
-    }
-
-    /**
-     * LocationPayload は、送信元の UUID と位置情報 (x, y, z) を含むカスタムペイロードです。
-     * 新しいネットワーキング API では、Payload 用の Codec を定義し、シリアライズ/デシリアライズする必要があります。
-     */
-    public record LocationPayload(java.util.UUID sender, double x, double y, double z, String description) implements CustomPayload {
-        public static final CustomPayload.Id<LocationPayload> ID = new CustomPayload.Id<>(Identifier.of("mc-location", "location_sync"));
-        public static final PacketCodec<RegistryByteBuf, LocationPayload> CODEC = PacketCodec.tuple(
-                Uuids.PACKET_CODEC, LocationPayload::sender,
-                PacketCodecs.DOUBLE, LocationPayload::x,
-                PacketCodecs.DOUBLE, LocationPayload::y,
-                PacketCodecs.DOUBLE, LocationPayload::z,
-                PacketCodecs.STRING, LocationPayload::description,
-                LocationPayload::new
-        );
-
-        @Override
-        public CustomPayload.Id<? extends CustomPayload> getId() {
-            return ID;
-        }
     }
 } 

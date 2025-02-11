@@ -1,4 +1,4 @@
-package com.bungggo.mc;
+package com.bungggo.mc.hud;
 
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
@@ -9,6 +9,9 @@ import org.joml.Matrix4f;
 import net.minecraft.client.render.Camera;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Vector3f;
+
+import com.bungggo.mc.model.LocationEntry;
+import com.bungggo.mc.store.LocationDataManager;
 
 import java.util.Optional;
 import net.minecraft.util.Identifier;

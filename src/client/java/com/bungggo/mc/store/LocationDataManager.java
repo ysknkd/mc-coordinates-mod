@@ -1,5 +1,6 @@
-package com.bungggo.mc;
+package com.bungggo.mc.store;
 
+import com.bungggo.mc.model.LocationEntry;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
