@@ -1,6 +1,6 @@
 package com.bungggo.mc.screen;
 
-import com.bungggo.mc.model.LocationEntry;
+import com.bungggo.mc.store.LocationEntry;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;

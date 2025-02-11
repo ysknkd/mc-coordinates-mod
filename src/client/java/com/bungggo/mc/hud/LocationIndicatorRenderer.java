@@ -10,8 +10,8 @@ import net.minecraft.client.render.Camera;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Vector3f;
 
-import com.bungggo.mc.model.LocationEntry;
 import com.bungggo.mc.store.LocationDataManager;
+import com.bungggo.mc.store.LocationEntry;
 
 import java.util.Optional;
 import net.minecraft.util.Identifier;

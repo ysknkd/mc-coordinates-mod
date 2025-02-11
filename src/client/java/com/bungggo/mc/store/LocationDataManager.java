@@ -1,6 +1,5 @@
 package com.bungggo.mc.store;
 
-import com.bungggo.mc.model.LocationEntry;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
@@ -24,6 +23,7 @@ import java.util.stream.Collectors;
  *   <li>位置情報エントリの追加、削除</li>
  *   <li>登録済みエントリの取得（全件／ピン留めのみ）</li>
  *   <li>ファイルへの JSON 形式での保存・ファイルからの読み込み</li>
+ *   <li>リスナーへの通知</li>
  * </ul>
  * このクラスはインスタンス化できないユーティリティクラスです。
  */
@@ -39,18 +39,22 @@ public final class LocationDataManager {
 
     private static final Gson gson = new Gson();
 
+    // リスナーの保持リスト
+    private static final List<LocationDataListener> listeners = new ArrayList<>();
+
     // インスタンス化防止
     private LocationDataManager() {}
 
     /**
      * 新しい位置情報エントリを追加します。<br>
-     * 追加後、直ちにストレージへ保存します。
+     * 追加後、直ちにストレージへ保存し、リスナーに通知します。
      *
      * @param entry 追加する位置情報エントリ
      */
     public static void addEntry(LocationEntry entry) {
         entries.add(entry);
         save();
+        notifyEntryAdded(entry);
     }
 
     /**
@@ -127,6 +131,45 @@ public final class LocationDataManager {
             }
         } catch (IOException e) {
             LOGGER.error("LocationDataManager#save エラー", e);
+        }
+    }
+
+    /**
+     * リスナーを登録します。
+     *
+     * @param listener 登録するリスナー
+     */
+    public static void registerListener(LocationDataListener listener) {
+        synchronized (listeners) {
+            listeners.add(listener);
+        }
+    }
+
+    /**
+     * リスナーの登録を解除します。
+     *
+     * @param listener 登録解除するリスナー
+     */
+    public static void unregisterListener(LocationDataListener listener) {
+        synchronized (listeners) {
+            listeners.remove(listener);
+        }
+    }
+
+    /**
+     * エントリが追加された際に、全ての登録済みリスナーへ通知します。
+     *
+     * @param entry 追加された位置情報エントリ
+     */
+    private static void notifyEntryAdded(LocationEntry entry) {
+        synchronized (listeners) {
+            for (LocationDataListener listener : listeners) {
+                try {
+                    listener.onEntryAdded(entry);
+                } catch (Exception e) {
+                    LOGGER.error("LocationDataManager#notifyEntryAdded エラー", e);
+                }
+            }
         }
     }
 }

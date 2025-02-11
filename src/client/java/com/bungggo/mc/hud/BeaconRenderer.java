@@ -1,7 +1,7 @@
 package com.bungggo.mc.hud;
 
-import com.bungggo.mc.model.LocationEntry;
 import com.bungggo.mc.store.LocationDataManager;
+import com.bungggo.mc.store.LocationEntry;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
