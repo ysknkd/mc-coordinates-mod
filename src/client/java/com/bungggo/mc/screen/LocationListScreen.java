@@ -9,9 +9,8 @@ import net.minecraft.text.Text;
 import net.minecraft.client.gui.DrawContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 
-import com.bungggo.mc.network.LocationPayload;
+import com.bungggo.mc.network.LocationShare;
 import com.bungggo.mc.store.LocationDataManager;
 import com.bungggo.mc.store.LocationEntry;
 
@@ -160,19 +159,7 @@ public class LocationListScreen extends Screen {
             int shareX = LEFT_MARGIN + (ICON_SIZE + ICON_GAP) * 2;
             this.addDrawableChild(
                 ButtonWidget.builder(Text.literal("🔗"), button -> {
-                    MinecraftClient client = MinecraftClient.getInstance();
-                    if (client.player != null) {
-                        // 送信者は現在のプレイヤーの UUID を利用
-                        LocationPayload payload = new LocationPayload(
-                            client.player.getUuid(),
-                            entry.x,
-                            entry.y,
-                            entry.z,
-                            entry.description,
-                            entry.world
-                        );
-                        ClientPlayNetworking.send(payload);
-                    }
+                    LocationShare.send(entry);
                 })
                 .dimensions(shareX, rowY, ICON_SIZE, ICON_SIZE)
                 .build()
