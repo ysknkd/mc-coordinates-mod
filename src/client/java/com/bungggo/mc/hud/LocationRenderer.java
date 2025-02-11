@@ -6,6 +6,7 @@ import java.util.Map;
 import com.bungggo.mc.store.LocationDataListener;
 import com.bungggo.mc.store.LocationDataManager;
 import com.bungggo.mc.store.LocationEntry;
+import com.bungggo.mc.util.Util;
 
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
@@ -80,11 +81,11 @@ public class LocationRenderer implements HudRenderCallback {
      * HUD 上にピン留めされた各エントリの座標を描画する。
      */
     private void renderPinnedEntries(DrawContext context, MinecraftClient client) {
-        if (!LocationDataManager.hasPinnedEntries()) {
+        if (!LocationDataManager.hasPinnedEntriesByWorld(Util.getCurrentWorldName(client))) {
             return;
         }
         int yOffset = 20;
-        for (LocationEntry pos : LocationDataManager.getPinnedEntries()) {
+        for (LocationEntry pos : LocationDataManager.getPinnedEntriesByWorld(Util.getCurrentWorldName(client))) {
             int xPosition = 1;
             String prefix = "📌";
             context.drawText(client.textRenderer, prefix, xPosition, yOffset, COLOR_WHITE, true);

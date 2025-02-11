@@ -12,6 +12,7 @@ import org.joml.Vector3f;
 
 import com.bungggo.mc.store.LocationDataManager;
 import com.bungggo.mc.store.LocationEntry;
+import com.bungggo.mc.util.Util;
 
 import java.util.Optional;
 import net.minecraft.util.Identifier;
@@ -34,6 +35,10 @@ public final class LocationIndicatorRenderer implements HudRenderCallback {
     public void onHudRender(DrawContext context, RenderTickCounter tickCounter) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.world == null) return;
+
+        if (!LocationDataManager.hasPinnedEntriesByWorld(Util.getCurrentWorldName(client))) {
+            return;
+        }
 
         int screenWidth = context.getScaledWindowWidth();
         int screenHeight = context.getScaledWindowHeight();
@@ -70,7 +75,7 @@ public final class LocationIndicatorRenderer implements HudRenderCallback {
         int tintColor = (alphaInt << 24) | 0xFFFFFF;
 
         // 各ピンごとに処理（サイズをカメラとの距離で調整）
-        for (LocationEntry entry : LocationDataManager.getPinnedEntries()) {
+        for (LocationEntry entry : LocationDataManager.getPinnedEntriesByWorld(Util.getCurrentWorldName(client))) {
             Optional<ScreenCoordinate> optionalCoord = calculateScreenCoordinate(entry, viewProjMatrix, screenWidth, screenHeight);
             if (!optionalCoord.isPresent()) continue;
             ScreenCoordinate coord = optionalCoord.get();

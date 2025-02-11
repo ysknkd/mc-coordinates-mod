@@ -28,19 +28,21 @@ public class LocationSaveKeyBinding implements Consumer<MinecraftClient> {
         KeyBindingEventHandler.registerListener(SAVE_LOCATION_KEY, new LocationSaveKeyBinding());
     }
 
-    @Override
     /**
-     * 保存キー (G キー) が押された場合、現在位置を保存する。
+     * 保存キー (G キー) が押された場合、現在位置とワールド情報を保存する。
      */
+    @Override
     public void accept(MinecraftClient client) {
-        if (client.player == null) {
+        if (client.player == null || client.world == null) {
             return;
         }
         double x = client.player.getX();
         double y = client.player.getY();
         double z = client.player.getZ();
+        // Minecraft のワールドは RegistryKey で識別されているため、その値を文字列として取得
+        String worldName = client.world.getRegistryKey().getValue().toString();
 
         // LocationDataManager にエントリ追加（内部で保存処理が実施される）
-        LocationDataManager.addEntry(new LocationEntry(x, y, z));
+        LocationDataManager.addEntry(new LocationEntry(x, y, z, "", worldName));
     }
 }

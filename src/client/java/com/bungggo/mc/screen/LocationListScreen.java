@@ -147,7 +147,8 @@ public class LocationListScreen extends Screen {
                             entry.x,
                             entry.y,
                             entry.z,
-                            entry.description
+                            entry.description,
+                            entry.world
                         );
                         // サーバーへ送信する（サーバー側で受信し、ブロードキャスト処理を行います）
                         ClientPlayNetworking.send(payload);
