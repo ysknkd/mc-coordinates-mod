@@ -11,9 +11,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 
-import com.bungggo.mc.model.LocationEntry;
 import com.bungggo.mc.network.LocationPayload;
 import com.bungggo.mc.store.LocationDataManager;
+import com.bungggo.mc.store.LocationEntry;
 
 import java.util.List;
 
