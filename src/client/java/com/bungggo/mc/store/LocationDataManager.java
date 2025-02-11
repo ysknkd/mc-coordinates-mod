@@ -87,6 +87,17 @@ public final class LocationDataManager {
     }
 
     /**
+     * 指定されたワールドにピン留めされたエントリが存在するかどうかを返します。
+     *
+     * @param world 対象のワールド名（例: "overworld", "the_nether"）
+     * @return 対象ワールドにピン留めエントリが存在すれば {@code true}、存在しなければ {@code false}
+     */
+    public static boolean hasPinnedEntriesByWorld(String world) {
+        return entries.stream()
+                      .anyMatch(entry -> entry.isPinned() && entry.world != null && entry.world.equals(world));
+    }
+
+    /**
      * ピン留めされたエントリのみを抽出し、不変リストとして返します。
      *
      * @return ピン留めエントリの不変リスト
@@ -96,6 +107,21 @@ public final class LocationDataManager {
                 entries.stream()
                         .filter(LocationEntry::isPinned)
                         .collect(Collectors.toList())
+        );
+    }
+
+    /**
+     * 指定されたワールドのピン留めされたエントリのみを抽出し、不変リストとして返します。
+     *
+     * @param world 対象のワールド名（例: "overworld", "the_nether"）
+     * @return 指定ワールドのピン留めされたエントリの不変リスト
+     */
+    public static List<LocationEntry> getPinnedEntriesByWorld(String world) {
+        return Collections.unmodifiableList(
+            entries.stream()
+                   .filter(LocationEntry::isPinned)
+                   .filter(entry -> entry.world != null && entry.world.equals(world))
+                   .collect(Collectors.toList())
         );
     }
 

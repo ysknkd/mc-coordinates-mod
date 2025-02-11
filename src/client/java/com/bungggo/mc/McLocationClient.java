@@ -71,7 +71,7 @@ public class McLocationClient implements ClientModInitializer {
                             payload.sender(), payload.x(), payload.y(), payload.z());
                     
                     // クライアント側で位置情報として取り込む処理（例：LocationDataManagerに追加）
-                    LocationDataManager.addEntry(new LocationEntry(payload.x(), payload.y(), payload.z(), payload.description()));
+                    LocationDataManager.addEntry(new LocationEntry(payload.x(), payload.y(), payload.z(), "", payload.world()));
                 } catch (Exception e) {
                     LOGGER.error("LocationPayload の受信・デコードに失敗しました", e);
                 }

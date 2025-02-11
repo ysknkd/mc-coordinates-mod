@@ -48,7 +48,7 @@ public class McLocationServer implements DedicatedServerModInitializer {
             // サーバースレッド上での処理
             context.server().execute(() -> {
                 // 発信元の UUID を上書きして、ブロードキャスト用の LocationPayload を作成
-                LocationPayload outgoing = new LocationPayload(senderPlayer.getUuid(), payload.x(), payload.y(), payload.z(), payload.description());
+                LocationPayload outgoing = new LocationPayload(senderPlayer.getUuid(), payload.x(), payload.y(), payload.z(), payload.description(), payload.world());
 
                 // 送信元以外の全プレイヤーに対して、同じ内容を送信
                 for (ServerPlayerEntity target : senderPlayer.getServer().getPlayerManager().getPlayerList()) {
