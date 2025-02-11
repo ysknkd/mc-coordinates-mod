@@ -20,6 +20,9 @@
 		],
 		"client": [
 			"com.bungggo.mc.McLocationClient"
+		],
+		"server": [
+			"com.bungggo.mc.McLocationServer"
 		]
 	},
 	"mixins": [

@@ -1,6 +1,8 @@
 package com.bungggo.mc;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.render.*;
 import net.minecraft.client.gui.DrawContext;
@@ -11,6 +13,7 @@ import net.minecraft.client.util.InputUtil;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
@@ -26,6 +29,7 @@ import java.util.Map;
  *   （前回との差分が縮まれば青、広がれば灰色、変化なければ前回の色を維持）
  * </p>
  */
+@Environment(EnvType.CLIENT)
 public class McLocationClient implements ClientModInitializer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("mc-location");
