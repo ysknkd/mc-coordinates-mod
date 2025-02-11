@@ -9,7 +9,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bungggo.mc.event.LocationListCommand;
+import com.bungggo.mc.event.LocationListBinding;
 import com.bungggo.mc.event.LocationSaveKeyBinding;
 import com.bungggo.mc.hud.LocationRenderer;
 import com.bungggo.mc.hud.LocationIndicatorRenderer;
@@ -34,7 +34,7 @@ public class McLocationClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         LocationSaveKeyBinding.register();
-        LocationListCommand.register();
+        LocationListBinding.register();
 
         LocationRenderer.register();
         LocationIndicatorRenderer.register();
