@@ -6,6 +6,7 @@ import org.lwjgl.glfw.GLFW;
 
 import com.bungggo.mc.store.LocationDataManager;
 import com.bungggo.mc.store.LocationEntry;
+import com.bungggo.mc.util.Util;
 
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.MinecraftClient;
@@ -21,7 +22,6 @@ public class LocationSaveKeyBinding implements Consumer<MinecraftClient> {
             GLFW.GLFW_KEY_G,
             "category.mc-location"
     ));
-
     
     public static void register() {
         // 位置保存キーおよびその他の Tick 処理
@@ -39,10 +39,10 @@ public class LocationSaveKeyBinding implements Consumer<MinecraftClient> {
         double x = client.player.getX();
         double y = client.player.getY();
         double z = client.player.getZ();
-        // Minecraft のワールドは RegistryKey で識別されているため、その値を文字列として取得
-        String worldName = client.world.getRegistryKey().getValue().toString();
+        String description = Util.getDefaultDescription(client);
+        String worldName = Util.getCurrentWorldName(client);
 
         // LocationDataManager にエントリ追加（内部で保存処理が実施される）
-        LocationDataManager.addEntry(new LocationEntry(x, y, z, "", worldName));
+        LocationDataManager.addEntry(new LocationEntry(x, y, z, description, worldName));
     }
 }

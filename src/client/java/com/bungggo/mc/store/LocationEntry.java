@@ -59,7 +59,8 @@ public class LocationEntry {
      * @return フォーマット済みの位置文字列
      */
     public String getLocationText() {
-        return String.format("X: %.1f, Y: %.1f, Z: %.1f [%s]", x, y, z, world);
+        String worldName = world.replace("minecraft:", "");
+        return String.format("X: %.1f, Y: %.1f, Z: %.1f [%s]", x, y, z, worldName);
     }
 
     public boolean isPinned() {
