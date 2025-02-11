@@ -16,6 +16,7 @@ import com.bungggo.mc.hud.LocationIndicatorRenderer;
 import com.bungggo.mc.network.LocationPayload;
 import com.bungggo.mc.store.LocationDataManager;
 import com.bungggo.mc.store.LocationEntry;
+import com.bungggo.mc.util.Util;
 
 /**
  * マルチプレイヤー位置管理クライアントクラス
@@ -45,19 +46,17 @@ public class McLocationClient implements ClientModInitializer {
 
         // ログイン時：必要に応じて個別のストレージ設定があれば実施
         net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
-            LOGGER.info("ログインしたのでデータを読み込みます。");
-            LocationDataManager.load();
+            LocationDataManager.clear();
+            LocationDataManager.load(Util.createWorldIdentifier(client));
         });
 
         // ログアウト時：ストレージにデータを保存
         net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
-            LOGGER.info("ワールドからログアウトしたのでデータを保存します。");
             LocationDataManager.save();
         });
 
         // クライアント終了時にデータ保存
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
-            LOGGER.info("クライアント終了時にデータを保存します。");
             LocationDataManager.save();
         });
         
