@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  * 以下の責務を持ちます。
  * <ul>
  *   <li>位置情報エントリの追加、削除</li>
- *   <li>登録済みエントリの取得（全件／ピン留めのみ）</li>
+ *   <li>登録済みエントリの取得（全件／ピン留めのみ／ワールド毎）</li>
  *   <li>ファイルへの JSON 形式での保存・ファイルからの読み込み</li>
  *   <li>リスナーへの通知</li>
  * </ul>
@@ -34,16 +34,28 @@ public final class LocationDataManager {
     // 内部の位置情報リスト（メモリ上での保持）
     private static final List<LocationEntry> entries = new ArrayList<>();
 
-    // 保存先ファイルのパス（例：config フォルダ直下の JSON ファイル）
-    private static final Path DATA_FILE = Paths.get("config", "mc_location_data.json");
-
+    // gson インスタンス
     private static final Gson gson = new Gson();
 
     // リスナーの保持リスト
     private static final List<LocationDataListener> listeners = new ArrayList<>();
 
+    // 現在の worldId を保持するためのフィールド（load 時に設定）
+    private static String currentWorldId = "unknown";
+
     // インスタンス化防止
     private LocationDataManager() {}
+
+    /**
+     * worldId に応じたファイルパスを返します。<br>
+     * 例: "config/mc-location/{worldId}/data.json"
+     *
+     * @param worldId 対象のワールドID
+     * @return データファイルのパス
+     */
+    private static Path getDataFilePath(String worldId) {
+        return Paths.get("config", "mc-location", worldId, "data.json");
+    }
 
     /**
      * 新しい位置情報エントリを追加します。<br>
@@ -87,17 +99,6 @@ public final class LocationDataManager {
     }
 
     /**
-     * 指定されたワールドにピン留めされたエントリが存在するかどうかを返します。
-     *
-     * @param world 対象のワールド名（例: "overworld", "the_nether"）
-     * @return 対象ワールドにピン留めエントリが存在すれば {@code true}、存在しなければ {@code false}
-     */
-    public static boolean hasPinnedEntriesByWorld(String world) {
-        return entries.stream()
-                      .anyMatch(entry -> entry.isPinned() && entry.world != null && entry.world.equals(world));
-    }
-
-    /**
      * ピン留めされたエントリのみを抽出し、不変リストとして返します。
      *
      * @return ピン留めエントリの不変リスト
@@ -113,27 +114,43 @@ public final class LocationDataManager {
     /**
      * 指定されたワールドのピン留めされたエントリのみを抽出し、不変リストとして返します。
      *
-     * @param world 対象のワールド名（例: "overworld", "the_nether"）
+     * @param world 対象のワールド名（例: "overworld"）
      * @return 指定ワールドのピン留めされたエントリの不変リスト
      */
     public static List<LocationEntry> getPinnedEntriesByWorld(String world) {
         return Collections.unmodifiableList(
             entries.stream()
                    .filter(LocationEntry::isPinned)
-                   .filter(entry -> entry.world != null && entry.world.equals(world))
+                   .filter(entry -> entry.world.equals(world))
                    .collect(Collectors.toList())
         );
     }
 
     /**
+     * 指定されたワールドにピン留めされたエントリが存在するかどうかを返します。
+     *
+     * @param world 対象のワールド名（例: "overworld"）
+     * @return 対象ワールドにピン留めエントリが存在すれば {@code true}、存在しなければ {@code false}
+     */
+    public static boolean hasPinnedEntriesByWorld(String world) {
+        return entries.stream()
+                      .anyMatch(entry -> entry.isPinned() && entry.world.equals(world));
+    }
+
+    /**
      * 永続化されたファイルから位置情報のデータを読み込み、内部リストに反映します。<br>
      * ファイルが存在しない場合は何もしません。
+     *
+     * @param worldId 読み込み対象のワールドID
      */
-    public static void load() {
-        if (!Files.exists(DATA_FILE)) {
+    public static void load(String worldId) {
+        // ワールドID を設定
+        currentWorldId = worldId;
+        Path dataFile = getDataFilePath(worldId);
+        if (!Files.exists(dataFile)) {
             return;
         }
-        try (Reader reader = Files.newBufferedReader(DATA_FILE, StandardCharsets.UTF_8)) {
+        try (Reader reader = Files.newBufferedReader(dataFile, StandardCharsets.UTF_8)) {
             Type listType = new TypeToken<List<LocationEntry>>() {}.getType();
             List<LocationEntry> loadedEntries = gson.fromJson(reader, listType);
             if (loadedEntries != null) {
@@ -150,9 +167,11 @@ public final class LocationDataManager {
      * 保存先ディレクトリが存在しない場合、自動的に作成します。
      */
     public static void save() {
+        // currentWorldId に基づいたファイルパスを使用
+        Path dataFile = getDataFilePath(currentWorldId);
         try {
-            Files.createDirectories(DATA_FILE.getParent());
-            try (Writer writer = Files.newBufferedWriter(DATA_FILE, StandardCharsets.UTF_8)) {
+            Files.createDirectories(dataFile.getParent());
+            try (Writer writer = Files.newBufferedWriter(dataFile, StandardCharsets.UTF_8)) {
                 gson.toJson(entries, writer);
             }
         } catch (IOException e) {
@@ -197,5 +216,13 @@ public final class LocationDataManager {
                 }
             }
         }
+    }
+
+    /**
+     * メモリ上の位置情報をクリアします。
+     */
+    public static void clear() {
+        // メモリ上のデータをクリア
+        entries.clear();
     }
 }
