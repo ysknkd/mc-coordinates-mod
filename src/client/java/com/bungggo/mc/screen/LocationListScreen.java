@@ -34,7 +34,7 @@ public class LocationListScreen extends Screen {
     private static final int ICON_SIZE = 20;
     private static final int ICON_GAP = 4;
     private static final int LEFT_MARGIN = 10;
-    private static final int TOP_MARGIN = 20;
+    private static final int TOP_MARGIN = 35;
     private static final int ROW_HEIGHT = ICON_SIZE + 4;
     private static final int DESC_BUTTON_WIDTH = 70;
     private static final int CLOSE_BUTTON_WIDTH = 100;
@@ -62,9 +62,24 @@ public class LocationListScreen extends Screen {
         int totalPages = (totalEntries + ENTRIES_PER_PAGE - 1) / ENTRIES_PER_PAGE;
 
         // 各ウィジェット生成処理を分割
+        addSettingsButton(); // 設定画面への遷移ボタンを追加
         addCloseButton();
         addPaginationButtons(totalPages);
         addLocationEntryWidgets(entries, currentPage * ENTRIES_PER_PAGE, Math.min((currentPage + 1) * ENTRIES_PER_PAGE, totalEntries));
+    }
+
+    /**
+     * 画面上部右側に設定画面へ遷移するボタンを追加する。（歯車アイコンを表示）
+     */
+    private void addSettingsButton() {
+        int x = this.width - ICON_SIZE - LEFT_MARGIN;
+        int y = 10;
+        this.addDrawableChild(
+            ButtonWidget.builder(Text.literal("⚙"), button ->
+                MinecraftClient.getInstance().setScreen(new LocationSettingsScreen()))
+            .dimensions(x, y, ICON_SIZE, ICON_SIZE)
+            .build()
+        );
     }
 
     /**

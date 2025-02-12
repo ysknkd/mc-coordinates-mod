@@ -4,6 +4,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
+import com.bungggo.mc.config.LocationConfig;
 import com.bungggo.mc.event.LocationListBinding;
 import com.bungggo.mc.event.LocationSaveKeyBinding;
 import com.bungggo.mc.hud.LocationRenderer;
@@ -38,16 +39,20 @@ public class McLocationClient implements ClientModInitializer {
         net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             LocationDataManager.clear();
             LocationDataManager.load(Util.createWorldIdentifier(client));
+            LocationConfig.reset();
+            LocationConfig.load(Util.createWorldIdentifier(client));
         });
 
         // ログアウト時：ストレージにデータを保存
         net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             LocationDataManager.save();
+            LocationConfig.save();
         });
 
         // クライアント終了時にデータ保存
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
             LocationDataManager.save();
+            LocationConfig.save();
         });    
     }
 } 
