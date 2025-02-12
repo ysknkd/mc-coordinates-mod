@@ -1,5 +1,7 @@
 package com.bungggo.mc.store;
 
+import java.util.UUID;
+
 /**
  * 位置データのエントリ。
  * 各エントリは説明、フェードアウト用の保存時刻、
@@ -8,6 +10,8 @@ package com.bungggo.mc.store;
  * 追加で所属するワールド（オーバーワールド、ネザーなど）も保存します。
  */
 public class LocationEntry {
+    // 各エントリごとに一意の UUID を持ちます
+    public final UUID uuid;
     public double x;
     public double y;
     public double z;
@@ -24,7 +28,7 @@ public class LocationEntry {
     public String icon;
 
     /**
-     * 数値データとして位置情報と説明、ワールド名を指定します。
+     * 新規エントリ作成時に、新しい UUID を自動生成します。
      *
      * @param x 位置のx座標
      * @param y 位置のy座標
@@ -33,6 +37,7 @@ public class LocationEntry {
      * @param world 所属するワールド（例: "minecraft:overworld", "minecraft:the_nether"）
      */
     public LocationEntry(double x, double y, double z, String description, String world, boolean pinned, String icon) {
+        this.uuid = UUID.randomUUID();  // 自動生成
         this.x = x;
         this.y = y;
         this.z = z;
@@ -44,6 +49,19 @@ public class LocationEntry {
         this.savedTime = System.currentTimeMillis();
     }
     
+    public LocationEntry(UUID uuid, double x, double y, double z, String description, String world, boolean pinned, String icon) {
+        this.uuid = uuid;
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.description = description;
+        this.world = world;
+        this.favorite = false;
+        this.pinned = pinned;
+        this.icon = icon;
+        this.savedTime = System.currentTimeMillis();
+    }
+
     /**
      * 位置データをフォーマットされた文字列に変換します。  
      * 表示用途などに利用できます。
