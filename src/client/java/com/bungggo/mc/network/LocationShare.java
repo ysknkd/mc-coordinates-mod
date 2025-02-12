@@ -25,7 +25,7 @@ public class LocationShare {
             context.client().execute(() -> {
                 try {
                     // クライアント側で位置情報として取り込む処理（例：LocationDataManagerに追加）
-                    LocationDataManager.addEntry(new LocationEntry(payload.x(), payload.y(), payload.z(), payload.description(), payload.world()));
+                    LocationDataManager.addEntry(new LocationEntry(payload.x(), payload.y(), payload.z(), payload.description(), payload.world(), payload.pinned()));
                 } catch (Exception e) {
                     LOGGER.error("LocationPayload の受信・デコードに失敗しました", e);
                 }

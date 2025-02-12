@@ -21,18 +21,6 @@ public class LocationEntry {
     public String world;
 
     /**
-     * 数値データとして位置情報を指定します。
-     * ワールド名は "unknown" で初期化します。
-     *
-     * @param x 位置のx座標
-     * @param y 位置のy座標
-     * @param z 位置のz座標
-     */
-    public LocationEntry(double x, double y, double z) {
-        this(x, y, z, "", "unknown");
-    }
-    
-    /**
      * 数値データとして位置情報と説明、ワールド名を指定します。
      *
      * @param x 位置のx座標
@@ -41,14 +29,14 @@ public class LocationEntry {
      * @param description 位置情報の説明
      * @param world 所属するワールド（例: "minecraft:overworld", "minecraft:the_nether"）
      */
-    public LocationEntry(double x, double y, double z, String description, String world) {
+    public LocationEntry(double x, double y, double z, String description, String world, boolean pinned) {
         this.x = x;
         this.y = y;
         this.z = z;
         this.description = description;
         this.world = world;
         this.favorite = false;
-        this.pinned = false;
+        this.pinned = pinned;
         this.savedTime = System.currentTimeMillis();
     }
     
