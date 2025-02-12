@@ -6,18 +6,21 @@ import java.util.Map;
 import com.bungggo.mc.store.LocationDataListener;
 import com.bungggo.mc.store.LocationDataManager;
 import com.bungggo.mc.store.LocationEntry;
+import com.bungggo.mc.util.IconTextureMap;
 import com.bungggo.mc.util.Util;
 
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderTickCounter;
+import net.minecraft.text.Text;
 
 public class LocationRenderer implements HudRenderCallback {
-    // 色定数
-    private static final int COLOR_BLUE = 0x3399FF;
-    private static final int COLOR_GRAY = 0xFF9999;
-    private static final int COLOR_WHITE = 0xFFFFFF;
+    // 色定数 (ARGB形式に変更)
+    private static final int COLOR_BLUE = 0xDD3399FF;
+    private static final int COLOR_RED = 0xDDFF9999;
+    private static final int COLOR_WHITE = 0xDDFFFFFF;
 
     // 前回座標更新間隔（tick 単位）
     private static final int TICK_UPDATE_INTERVAL = 5;
@@ -31,11 +34,12 @@ public class LocationRenderer implements HudRenderCallback {
     private static Double prevPlayerY = 0.0;
     private static Double prevPlayerZ = 0.0;
 
+    // 保存メッセージ表示用
     private String savedMessage = "";
     private long messageDisplayTick = 0;
 
-    // 各ピン留めエントリごとの前回の色を保持するマップ
-    private final Map<LocationEntry, AxisColor> previousColors = new HashMap<>();
+    // 各エントリごとに最後の表示色（青または赤）を保持するマップ
+    private final Map<LocationEntry, Integer> lastDistanceColors = new HashMap<>();
     
     public static void register() {
         HudRenderCallback.EVENT.register(new LocationRenderer());
@@ -46,7 +50,6 @@ public class LocationRenderer implements HudRenderCallback {
             @Override
             public void onEntryAdded(LocationEntry entry) {
                 MinecraftClient client = MinecraftClient.getInstance();
-
                 savedMessage = "Location saved!";
                 if (client.world != null) {
                     messageDisplayTick = client.world.getTime();
@@ -78,56 +81,69 @@ public class LocationRenderer implements HudRenderCallback {
     }
 
     /**
-     * HUD 上にピン留めされた各エントリの座標を描画する。
+     * HUD 上にピン留めされた各エントリのアイコンと説明文を描画します。<br>
+     * プレイヤーとの距離変化に応じ、近づいていれば青、遠ざかっていれば赤の色で表示し、<br>
+     * 色が変化した後は直前の色を保持します。
      */
     private void renderPinnedEntries(DrawContext context, MinecraftClient client) {
-        if (!LocationDataManager.hasPinnedEntriesByWorld(Util.getCurrentWorldName(client))) {
+        String currentWorldName = Util.getCurrentWorldName(client);
+        if (!LocationDataManager.hasPinnedEntriesByWorld(currentWorldName)) {
             return;
         }
         int yOffset = 20;
-        for (LocationEntry pos : LocationDataManager.getPinnedEntriesByWorld(Util.getCurrentWorldName(client))) {
+        for (LocationEntry entry : LocationDataManager.getPinnedEntriesByWorld(currentWorldName)) {
             int xPosition = 1;
-            String prefix = "📌";
-            context.drawText(client.textRenderer, prefix, xPosition, yOffset, COLOR_WHITE, true);
-            xPosition += client.textRenderer.getWidth(prefix);
-
-            int computedColorX = getAxisColor(pos.x, prevPlayerX, client.player.getX());
-            int computedColorY = getAxisColor(pos.y, prevPlayerY, client.player.getY());
-            int computedColorZ = getAxisColor(pos.z, prevPlayerZ, client.player.getZ());
-
-            // 前回保持していた色があり、今回の計算結果が白の場合は保持色を利用
-            AxisColor storedColor = previousColors.get(pos);
-            if (storedColor != null) {
-                if (computedColorX == COLOR_WHITE) {
-                    computedColorX = storedColor.colorX;
-                }
-                if (computedColorY == COLOR_WHITE) {
-                    computedColorY = storedColor.colorY;
-                }
-                if (computedColorZ == COLOR_WHITE) {
-                    computedColorZ = storedColor.colorZ;
-                }
+            // 距離に応じて色を切り替える
+            double currDist = Math.sqrt(
+                    Math.pow(client.player.getX() - entry.x, 2) +
+                    Math.pow(client.player.getY() - entry.y, 2) +
+                    Math.pow(client.player.getZ() - entry.z, 2)
+            );
+            double prevDist = Math.sqrt(
+                    Math.pow(prevPlayerX - entry.x, 2) +
+                    Math.pow(prevPlayerY - entry.y, 2) +
+                    Math.pow(prevPlayerZ - entry.z, 2)
+            );
+            int computedColor = COLOR_WHITE;
+            if (currDist < prevDist) {
+                computedColor = COLOR_BLUE;
+            } else if (currDist > prevDist) {
+                computedColor = COLOR_RED;
             }
+            // computedColor が白であれば、直前の色（青または赤）を保持
+            if (computedColor != COLOR_WHITE) {
+                lastDistanceColors.put(entry, computedColor);
+            }
+            int entryColor = lastDistanceColors.getOrDefault(entry, COLOR_WHITE);
 
-            String xStr = String.format("X: %.1f", pos.x);
-            context.drawText(client.textRenderer, xStr, xPosition, yOffset, computedColorX, true);
-            xPosition += client.textRenderer.getWidth(xStr);
+            int iconSize = 16;  // アイコンサイズ
+            // tint 付きでアイコンを描画（DrawContext.drawTexture のオーバーロードを使用）
+            context.drawTexture(
+                RenderLayer::getGuiTextured, 
+                IconTextureMap.getTexture(entry.icon), 
+                xPosition, yOffset, 
+                0.0F, 0.0F, 
+                iconSize, iconSize, 
+                iconSize, iconSize, 
+                entryColor
+            );
+            xPosition += iconSize + 3;
+            // 説明文も同じ色で描画
+            context.drawText(
+                client.textRenderer,
+                Text.literal(entry.description),
+                xPosition,
+                yOffset + (iconSize - client.textRenderer.fontHeight) / 2,
+                entryColor,
+                true
+            );
 
-            String yStr = String.format(", Y: %.1f", pos.y);
-            context.drawText(client.textRenderer, yStr, xPosition, yOffset, computedColorY, true);
-            xPosition += client.textRenderer.getWidth(yStr);
-
-            String zStr = String.format(", Z: %.1f", pos.z);
-            context.drawText(client.textRenderer, zStr, xPosition, yOffset, computedColorZ, true);
-
-            // 現在の色を保存
-            previousColors.put(pos, new AxisColor(computedColorX, computedColorY, computedColorZ));
-            yOffset += client.textRenderer.fontHeight;
+            yOffset += iconSize + 4;
         }
     }
 
     /**
-     * HUD 上に保存メッセージをフェードアウトさせて描画する。
+     * HUD 上に保存メッセージをフェードアウトさせて描画します。
      */
     private void renderSavedMessage(DrawContext context, MinecraftClient client, RenderTickCounter tickCounter) {
         if (savedMessage.isEmpty() || client.world == null) {
@@ -148,41 +164,7 @@ public class LocationRenderer implements HudRenderCallback {
     }
 
     /**
-     * 指定されたピン留め値と、前回・現在のプレイヤー座標との差から適用する色を決定する。
-     *
-     * @param pinned        ピン留めされた値
-     * @param prevPlayer    前回のプレイヤー座標
-     * @param currentPlayer 現在のプレイヤー座標
-     * @return 選択された色コード
-     */
-    private int getAxisColor(double pinned, double prevPlayer, double currentPlayer) {
-        double prevDiff = Math.abs(pinned - prevPlayer);
-        double currentDiff = Math.abs(pinned - currentPlayer);
-        if (currentDiff < prevDiff) {
-            return COLOR_BLUE;
-        } else if (currentDiff > prevDiff) {
-            return COLOR_GRAY;
-        }
-        return COLOR_WHITE;
-    }
-
-    /**
-     * 各軸の色を管理する内部クラス
-     */
-    private static class AxisColor {
-        public int colorX;
-        public int colorY;
-        public int colorZ;
-
-        public AxisColor(int colorX, int colorY, int colorZ) {
-            this.colorX = colorX;
-            this.colorY = colorY;
-            this.colorZ = colorZ;
-        }
-    }
-
-    /**
-     * 前回のプレイヤー座標を一定間隔ごとに更新する。
+     * 前回のプレイヤー座標を一定間隔ごとに更新します。
      */
     private void updatePrevPlayerCoordinates(MinecraftClient client, double currentX, double currentY, double currentZ) {
         if (client.world != null) {

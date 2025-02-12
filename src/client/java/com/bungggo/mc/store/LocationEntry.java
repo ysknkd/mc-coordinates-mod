@@ -20,6 +20,9 @@ public class LocationEntry {
     // 所属ワールドを保存するフィールド
     public String world;
 
+    // アイコン識別子。自動設定されたアイコンを保持し、後から手動での上書きも可能です
+    public String icon;
+
     /**
      * 数値データとして位置情報と説明、ワールド名を指定します。
      *
@@ -29,7 +32,7 @@ public class LocationEntry {
      * @param description 位置情報の説明
      * @param world 所属するワールド（例: "minecraft:overworld", "minecraft:the_nether"）
      */
-    public LocationEntry(double x, double y, double z, String description, String world, boolean pinned) {
+    public LocationEntry(double x, double y, double z, String description, String world, boolean pinned, String icon) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -37,6 +40,7 @@ public class LocationEntry {
         this.world = world;
         this.favorite = false;
         this.pinned = pinned;
+        this.icon = icon;
         this.savedTime = System.currentTimeMillis();
     }
     

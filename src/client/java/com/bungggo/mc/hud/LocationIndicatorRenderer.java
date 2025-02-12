@@ -12,10 +12,10 @@ import org.joml.Vector3f;
 
 import com.bungggo.mc.store.LocationDataManager;
 import com.bungggo.mc.store.LocationEntry;
+import com.bungggo.mc.util.IconTextureMap;
 import com.bungggo.mc.util.Util;
 
 import java.util.Optional;
-import net.minecraft.util.Identifier;
 import net.minecraft.client.render.RenderLayer;
 
 /**
@@ -24,8 +24,6 @@ import net.minecraft.client.render.RenderLayer;
  * 画面中心から一定距離の位置に四角形（赤色）として表示します。
  */
 public final class LocationIndicatorRenderer implements HudRenderCallback {
-
-    private static final Identifier PIN_TEXTURE = Identifier.of("mc-location", "textures/indicator/pin.png");
 
     public static void register() {
         HudRenderCallback.EVENT.register(new LocationIndicatorRenderer());
@@ -116,7 +114,7 @@ public final class LocationIndicatorRenderer implements HudRenderCallback {
             int drawY = - pinHeight;
             context.drawTexture(
                 RenderLayer::getGuiTextured,
-                PIN_TEXTURE,
+                IconTextureMap.getTexture(entry.icon),
                 drawX, drawY,
                 0.0F, 0.0F,
                 pinWidth, pinHeight, // 常に元のテクスチャ全体を描画
