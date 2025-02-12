@@ -15,6 +15,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.UUID;
+import java.util.Collection;
+import java.util.function.Function;
 
 /**
  * 位置情報のデータ管理と永続化を行うユーティリティクラスです。<br>
@@ -31,8 +36,8 @@ public final class LocationDataManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LocationDataManager.class);
 
-    // 内部の位置情報リスト（メモリ上での保持）
-    private static final List<LocationEntry> entries = new ArrayList<>();
+    // UUID をキーにエントリを管理する Map
+    private static final Map<UUID, LocationEntry> entries = new HashMap<>();
 
     // gson インスタンス
     private static final Gson gson = new Gson();
@@ -58,35 +63,46 @@ public final class LocationDataManager {
     }
 
     /**
-     * 新しい位置情報エントリを追加します。<br>
-     * 追加後、直ちにストレージへ保存し、リスナーに通知します。
+     * 新規追加または、すでに同じ UUID のエントリが存在する場合はそのエントリを更新します。
      *
-     * @param entry 追加する位置情報エントリ
+     * @param newEntry 追加または更新する LocationEntry
      */
-    public static void addEntry(LocationEntry entry) {
-        entries.add(entry);
-        save();
-        notifyEntryAdded(entry);
+    public static void addOrUpdateEntry(LocationEntry newEntry) {
+        entries.compute(newEntry.uuid, (key, existing) -> {
+            if (existing != null) {
+                // 既存エントリがあれば、各フィールドを上書き更新
+                existing.x = newEntry.x;
+                existing.y = newEntry.y;
+                existing.z = newEntry.z;
+                existing.description = newEntry.description;
+                existing.world = newEntry.world;
+                existing.pinned = newEntry.pinned;
+                existing.icon = newEntry.icon;
+                return existing;
+            }
+            // 存在しなければ新規登録
+            notifyEntryAdded(newEntry);
+            return newEntry;
+        });
     }
 
     /**
-     * 指定された位置情報エントリを削除します。<br>
-     * 削除後、直ちにストレージへ保存します。
+     * 現在管理している全エントリを返します。
      *
-     * @param entry 削除する位置情報エントリ
+     * @return エントリのコレクション
      */
-    public static void removeEntry(LocationEntry entry) {
-        entries.remove(entry);
-        save();
+    public static Collection<LocationEntry> getEntries() {
+        return entries.values();
     }
 
     /**
-     * 登録されている全位置情報エントリの不変リストを返します。
+     * 指定された UUID に対応するエントリを返します。
      *
-     * @return 全エントリの不変リスト
+     * @param uuid 検索するエントリの UUID
+     * @return 該当するエントリがあれば返します。なければ null です。
      */
-    public static List<LocationEntry> getEntries() {
-        return Collections.unmodifiableList(entries);
+    public static LocationEntry getEntry(UUID uuid) {
+        return entries.get(uuid);
     }
 
     /**
@@ -95,7 +111,7 @@ public final class LocationDataManager {
      * @return ピン留めエントリが存在すれば {@code true}、なければ {@code false}
      */
     public static boolean hasPinnedEntries() {
-        return entries.stream().anyMatch(LocationEntry::isPinned);
+        return entries.values().stream().anyMatch(LocationEntry::isPinned);
     }
 
     /**
@@ -105,7 +121,7 @@ public final class LocationDataManager {
      */
     public static List<LocationEntry> getPinnedEntries() {
         return Collections.unmodifiableList(
-                entries.stream()
+                entries.values().stream()
                         .filter(LocationEntry::isPinned)
                         .collect(Collectors.toList())
         );
@@ -119,11 +135,21 @@ public final class LocationDataManager {
      */
     public static List<LocationEntry> getPinnedEntriesByWorld(String world) {
         return Collections.unmodifiableList(
-            entries.stream()
+            entries.values().stream()
                    .filter(LocationEntry::isPinned)
                    .filter(entry -> entry.world.equals(world))
                    .collect(Collectors.toList())
         );
+    }
+
+
+    /**
+     * 指定されたエントリの UUID をキーとしてエントリを削除します。
+     *
+     * @param entry 削除するエントリ
+     */
+    public static void removeEntry(LocationEntry entry) {
+        entries.remove(entry.uuid);
     }
 
     /**
@@ -133,7 +159,7 @@ public final class LocationDataManager {
      * @return 対象ワールドにピン留めエントリが存在すれば {@code true}、存在しなければ {@code false}
      */
     public static boolean hasPinnedEntriesByWorld(String world) {
-        return entries.stream()
+        return entries.values().stream()
                       .anyMatch(entry -> entry.isPinned() && entry.world.equals(world));
     }
 
@@ -155,7 +181,9 @@ public final class LocationDataManager {
             List<LocationEntry> loadedEntries = gson.fromJson(reader, listType);
             if (loadedEntries != null) {
                 entries.clear();
-                entries.addAll(loadedEntries);
+                entries.putAll(
+                    loadedEntries.stream().collect(Collectors.toMap(entry -> entry.uuid, Function.identity()))
+                );
             }
         } catch (IOException e) {
             LOGGER.error("LocationDataManager#load エラー", e);
@@ -172,7 +200,7 @@ public final class LocationDataManager {
         try {
             Files.createDirectories(dataFile.getParent());
             try (Writer writer = Files.newBufferedWriter(dataFile, StandardCharsets.UTF_8)) {
-                gson.toJson(entries, writer);
+                gson.toJson(entries.values(), writer);
             }
         } catch (IOException e) {
             LOGGER.error("LocationDataManager#save エラー", e);

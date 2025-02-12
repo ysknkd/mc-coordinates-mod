@@ -15,6 +15,7 @@ import com.bungggo.mc.store.LocationDataManager;
 import com.bungggo.mc.store.LocationEntry;
 
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * 保存データ一覧画面。
@@ -56,7 +57,7 @@ public class LocationListScreen extends Screen {
 
     @Override
     protected void init() {
-        List<LocationEntry> entries = LocationDataManager.getEntries();
+        List<LocationEntry> entries = new ArrayList<>(LocationDataManager.getEntries());
         int totalEntries = entries.size();
         int totalPages = (totalEntries + ENTRIES_PER_PAGE - 1) / ENTRIES_PER_PAGE;
 
@@ -231,7 +232,7 @@ public class LocationListScreen extends Screen {
      * 現在のページに該当するエントリのテキスト情報を描画する。
      */
     private void renderEntriesText(DrawContext context) {
-        List<LocationEntry> entries = LocationDataManager.getEntries();
+        List<LocationEntry> entries = new ArrayList<>(LocationDataManager.getEntries());
         int totalEntries = entries.size();
         int startIndex = currentPage * ENTRIES_PER_PAGE;
         int endIndex = Math.min(startIndex + ENTRIES_PER_PAGE, totalEntries);
@@ -251,7 +252,7 @@ public class LocationListScreen extends Screen {
      */
     private void renderPaginationText(DrawContext context) {
         int paginationAreaY = this.height - PAGINATION_AREA_OFFSET;
-        List<LocationEntry> entries = LocationDataManager.getEntries();
+        List<LocationEntry> entries = new ArrayList<>(LocationDataManager.getEntries());
         int totalEntries = entries.size();
         int totalPages = (totalEntries + ENTRIES_PER_PAGE - 1) / ENTRIES_PER_PAGE;
         String pageInfo = (currentPage + 1) + " / " + totalPages;

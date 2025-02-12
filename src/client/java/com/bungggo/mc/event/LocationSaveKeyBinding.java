@@ -57,6 +57,6 @@ public class LocationSaveKeyBinding implements Consumer<MinecraftClient> {
 
         // 位置情報エントリ生成。保存時のピン状態は設定値を利用
         LocationEntry entry = new LocationEntry(x, y, z, description, worldName, LocationConfig.getDefaultPinState(), icon);
-        LocationDataManager.addEntry(entry);
+        LocationDataManager.addOrUpdateEntry(entry);
     }
 }

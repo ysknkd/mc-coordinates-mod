@@ -25,7 +25,7 @@ public class LocationShare {
             context.client().execute(() -> {
                 try {
                     // クライアント側で位置情報として取り込む処理（例：LocationDataManagerに追加）
-                    LocationDataManager.addEntry(new LocationEntry(payload.x(), payload.y(), payload.z(), payload.description(), payload.world(), payload.pinned(), payload.icon()));
+                    LocationDataManager.addOrUpdateEntry(new LocationEntry(payload.uuid(), payload.x(), payload.y(), payload.z(), payload.description(), payload.world(), payload.pinned(), payload.icon()));
                 } catch (Exception e) {
                     LOGGER.error("LocationPayload の受信・デコードに失敗しました", e);
                 }
@@ -39,6 +39,7 @@ public class LocationShare {
             // 送信者は現在のプレイヤーの UUID を利用
             LocationPayload payload = new LocationPayload(
                     client.player.getUuid(),
+                    entry.uuid,
                     entry.x,
                     entry.y,
                     entry.z,
