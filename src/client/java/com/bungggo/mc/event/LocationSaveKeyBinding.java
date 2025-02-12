@@ -4,6 +4,9 @@ import java.util.function.Consumer;
 
 import org.lwjgl.glfw.GLFW;
 
+import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.Vec3d;
+
 import com.bungggo.mc.config.LocationConfig;
 import com.bungggo.mc.store.LocationDataManager;
 import com.bungggo.mc.store.LocationEntry;
@@ -16,7 +19,6 @@ import net.minecraft.client.util.InputUtil;
 
 /**
  * 位置情報保存用のキー入力処理（G キー）です。<br>
- * 保存時に LocationConfig.defaultPinState の値を用いて、エントリの初期ピン状態を設定します。
  */
 public class LocationSaveKeyBinding implements Consumer<MinecraftClient> {
     
@@ -34,21 +36,26 @@ public class LocationSaveKeyBinding implements Consumer<MinecraftClient> {
     }
 
     /**
-     * 保存キー (G キー) が押された場合、現在位置とワールド情報、設定のピン状態で位置情報エントリを保存します。
+     * 保存キー (G キー) が押された場合、現在位置とワールド情報、設定のピン状態で位置情報エントリを保存します。<br>
      */
     @Override
     public void accept(MinecraftClient client) {
         if (client.player == null || client.world == null) {
             return;
         }
-        double x = client.player.getX();
-        double y = client.player.getY();
-        double z = client.player.getZ();
-        String description = Util.getDefaultDescription(client);
+
+        // レイキャストして画面中央の"+"位置を取得
+        HitResult hitResult = client.player.raycast(3, 1.0F, false);
+        Vec3d hitPos = hitResult.getPos();
+        double x = hitPos.x;
+        double y = hitPos.y;
+        double z = hitPos.z;
+        
         String worldName = Util.getCurrentWorldName(client);
-        // エントリ生成（保存時のピン状態は設定値 LocationConfig.defaultPinState を利用）
+        String description = Util.getDefaultDescription(client);
+
+        // 位置情報エントリ生成。保存時のピン状態は設定値を利用
         LocationEntry entry = new LocationEntry(x, y, z, description, worldName, LocationConfig.getDefaultPinState());
-        // LocationDataManager にエントリを追加（内部で保存処理を実施）
         LocationDataManager.addEntry(entry);
     }
 }
