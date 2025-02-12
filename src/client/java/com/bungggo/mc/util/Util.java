@@ -39,13 +39,12 @@ public class Util {
     }
 
    /**
-     * 指定された MinecraftClient からデフォルトの説明として使う文字列（構造物名またはバイオーム名）を返します。<br>
-     * 現在はバイオーム情報を取得して利用しています。
+     * 指定された MinecraftClient からバイオーム名を返します。<br>
      *
      * @param client MinecraftClient のインスタンス
-     * @return デフォルトの説明文字列（例: "plains"）
+     * @return バイオーム名（例: "plains"）
      */
-    public static String getDefaultDescription(MinecraftClient client) {
+    public static String getBiome(MinecraftClient client) {
         if (client == null || client.player == null || client.world == null) {
             return "unknown";
         }
@@ -53,9 +52,35 @@ public class Util {
         RegistryEntry<Biome> biome = client.world.getBiome(pos);
         return biome.getIdAsString().replace("minecraft:", "");
     }
+    /**
+     * 指定された位置のバイオームに応じたアイコン識別子を返します。<br>
+     * 例: "minecraft:desert" を含む場合は "desert_icon"、含まれなければ "default_icon" を返します。
+     *
+     * @param client MinecraftClient インスタンス
+     * @param pos 対象の BlockPos
+     * @return アイコン識別子
+     */
+    public static String getIcon(MinecraftClient client) {
+        String biome = getBiome(client);
+
+        if (biome.contains("desert")) {
+            return "desert";
+        } else if (biome.contains("snowy") || biome.contains("frozen") || biome.contains("ice")) {
+            return "ice";
+        } else if (biome.contains("pale")) {
+            return "pale";
+        } else if (biome.contains("forest")) {
+            return "forest";
+        } else if (biome.contains("plains")) {
+            return "plains";
+        } else if (biome.contains("mountain") || biome.contains("badlands")) {
+            return "mountain";
+        }
+        return "default";
+    }
 
     // ワールド内に保存するファイル名
-    private static final String UNIQUE_ID_FILE_NAME = "yourmod/unique_id.dat";
+    private static final String UNIQUE_ID_FILE_NAME = "mc-location/unique_id.dat";
 
     /**
      * 統合サーバー(シングルプレイ)から、ワールド固有のUUIDを取得し、

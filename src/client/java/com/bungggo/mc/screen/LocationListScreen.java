@@ -56,7 +56,6 @@ public class LocationListScreen extends Screen {
 
     @Override
     protected void init() {
-        LOGGER.info("[LocationListScreen] init() called");
         List<LocationEntry> entries = LocationDataManager.getEntries();
         int totalEntries = entries.size();
         int totalPages = (totalEntries + ENTRIES_PER_PAGE - 1) / ENTRIES_PER_PAGE;

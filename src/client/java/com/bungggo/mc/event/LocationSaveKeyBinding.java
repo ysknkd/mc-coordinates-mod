@@ -52,10 +52,11 @@ public class LocationSaveKeyBinding implements Consumer<MinecraftClient> {
         double z = hitPos.z;
         
         String worldName = Util.getCurrentWorldName(client);
-        String description = Util.getDefaultDescription(client);
+        String description = Util.getBiome(client);
+        String icon = Util.getIcon(client);
 
         // 位置情報エントリ生成。保存時のピン状態は設定値を利用
-        LocationEntry entry = new LocationEntry(x, y, z, description, worldName, LocationConfig.getDefaultPinState());
+        LocationEntry entry = new LocationEntry(x, y, z, description, worldName, LocationConfig.getDefaultPinState(), icon);
         LocationDataManager.addEntry(entry);
     }
 }
