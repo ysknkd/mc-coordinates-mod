@@ -8,6 +8,7 @@ import com.bungggo.mc.config.LocationConfig;
 import com.bungggo.mc.event.LocationListBinding;
 import com.bungggo.mc.event.LocationSaveKeyBinding;
 import com.bungggo.mc.hud.LocationRenderer;
+import com.bungggo.mc.hud.Notification;
 import com.bungggo.mc.network.LocationShare;
 import com.bungggo.mc.hud.LocationIndicatorRenderer;
 import com.bungggo.mc.store.LocationDataManager;
@@ -30,6 +31,7 @@ public class McLocationClient implements ClientModInitializer {
         LocationSaveKeyBinding.register();
         LocationListBinding.register();
 
+        Notification.register();
         LocationRenderer.register();
         LocationIndicatorRenderer.register();
 

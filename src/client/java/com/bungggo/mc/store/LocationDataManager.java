@@ -11,9 +11,15 @@ import java.io.Writer;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
-import java.util.*;
-import java.util.function.Function;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.LinkedHashMap;
+import java.util.Comparator;
 
 /**
  * 位置情報のデータ管理と永続化を行うユーティリティクラスです。<br>
@@ -32,8 +38,12 @@ public final class LocationDataManager {
     // フィールド
     // ----------------------------------------------------------------
     private static final Logger LOGGER = LoggerFactory.getLogger(LocationDataManager.class);
+
+    // UUID をキーにエントリを管理する Map
+    private static final Map<UUID, LocationEntry> entries = new LinkedHashMap<>();
+
+    // gson インスタンス
     private static final Gson gson = new Gson();
-    private static final Map<UUID, LocationEntry> entries = new HashMap<>();
     private static final List<LocationDataListener> listeners = new ArrayList<>();
 
     // 現在の worldId（load 時に更新される）
@@ -130,31 +140,33 @@ public final class LocationDataManager {
     }
 
     /**
-     * 指定された UUID に一致するエントリを取得します。
+     * 指定されたエントリをメモリ上から削除します。
      *
-     * @param uuid 対象エントリの UUID
-     * @return 該当するエントリがあれば返します。なければ null
+     * @param entry 削除対象の LocationEntry
+     */
+    public static void removeEntry(LocationEntry entry) {
+        entries.remove(entry.uuid);
+    }
+
+    /**
+     * 指定された UUID に対応するエントリを返します。
+     *
+     * @param uuid 検索するエントリの UUID
+     * @return 該当するエントリがあれば返します。なければ null です。
      */
     public static LocationEntry getEntry(UUID uuid) {
         return entries.get(uuid);
     }
 
     /**
-     * 現在管理されている全エントリを返します。
+     * 管理中のエントリを保存時刻の新しい順（降順）にソートしたリストとして返します。
      *
-     * @return 管理中のエントリコレクション
+     * @return 保存時刻降順の LocationEntry リスト
      */
-    public static Collection<LocationEntry> getEntries() {
-        return entries.values();
-    }
-
-    /**
-     * 与えられたエントリの UUID をキーとしてエントリを削除します。
-     *
-     * @param entry 削除対象の LocationEntry
-     */
-    public static void removeEntry(LocationEntry entry) {
-        entries.remove(entry.uuid);
+    public static List<LocationEntry> getEntries() {
+        return entries.values().stream()
+                .sorted(Comparator.comparingLong((LocationEntry e) -> e.savedTime).reversed())
+                .collect(Collectors.toList());
     }
 
     /**
@@ -257,3 +269,4 @@ public final class LocationDataManager {
         }
     }
 }
+ 
