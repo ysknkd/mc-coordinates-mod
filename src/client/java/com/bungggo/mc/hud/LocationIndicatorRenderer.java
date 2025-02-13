@@ -124,12 +124,15 @@ public final class LocationIndicatorRenderer implements HudRenderCallback {
             context.getMatrices().pop();
 
             // インジケーター下に距離テキストを表示する
-            // 距離（ブロック数）を少数第1位まで表示
             String distanceText = String.format("%.1f", distance);
             int textColor = 0xAAFFFFFF; // 半透明の白色
-            int textWidth = client.textRenderer.getWidth(distanceText);
-            // 画面上の座標 coord はインジケーターの下端なので、そこからもう少し下に描画
-            context.drawText(client.textRenderer, distanceText, coord.x - textWidth / 2, coord.y + 8, textColor, false);
+            int distanceTextWidth = client.textRenderer.getWidth(distanceText);
+            context.drawText(client.textRenderer, distanceText, coord.x - distanceTextWidth / 2, coord.y + 8, textColor, false);
+
+            // 距離テキストの下に description を表示する
+            String descriptionText = entry.description;
+            int descriptionTextWidth = client.textRenderer.getWidth(descriptionText);
+            context.drawText(client.textRenderer, descriptionText, coord.x - descriptionTextWidth / 2, coord.y + 20, textColor, false);
         }
     }
 

@@ -33,10 +33,10 @@ public record LocationPayload(
             buf.writeDouble(payload.x());
             buf.writeDouble(payload.y());
             buf.writeDouble(payload.z());
-            buf.writeString(payload.description());
-            buf.writeString(payload.world());
+            buf.writeString(payload.description() != null ? payload.description() : "");
+            buf.writeString(payload.world() != null ? payload.world() : "");
             buf.writeBoolean(payload.pinned());
-            buf.writeString(payload.icon());
+            buf.writeString(payload.icon() != null ? payload.icon() : "");
         }
 
         @Override

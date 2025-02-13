@@ -11,7 +11,7 @@ import java.util.UUID;
  */
 public class LocationEntry {
     // 各エントリごとに一意の UUID を持ちます
-    public final UUID uuid;
+    public UUID uuid;
     public double x;
     public double y;
     public double z;
@@ -26,6 +26,7 @@ public class LocationEntry {
 
     // アイコン識別子。自動設定されたアイコンを保持し、後から手動での上書きも可能です
     public String icon;
+    public boolean share;
 
     /**
      * 新規エントリ作成時に、新しい UUID を自動生成します。

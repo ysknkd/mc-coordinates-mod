@@ -13,6 +13,9 @@ import org.slf4j.LoggerFactory;
 import com.bungggo.mc.network.LocationShare;
 import com.bungggo.mc.store.LocationDataManager;
 import com.bungggo.mc.store.LocationEntry;
+import com.bungggo.mc.util.IconTextureMap;
+import net.minecraft.util.Identifier;
+import net.minecraft.client.render.RenderLayer;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -142,13 +145,13 @@ public class LocationListScreen extends Screen {
             int rowY = TOP_MARGIN + displayIndex * ROW_HEIGHT;
             LocationEntry entry = entries.get(i);
 
-            // お気に入りトグルボタン（アイコン "★"）
-            this.addDrawableChild(new ToggleIconButton(
+            // お気に入りトグルボタン（従来は "★" を表示していた部分を entry.icon で表示するように変更）
+            this.addDrawableChild(new FavoriteToggleIconButton(
                 LEFT_MARGIN,
                 rowY,
                 ICON_SIZE,
                 ICON_SIZE,
-                Text.literal("★"),
+                IconTextureMap.getTexture(entry.icon), // entry.icon に対応するテクスチャを使用
                 button -> {
                     entry.favorite = !entry.favorite;
                     MinecraftClient.getInstance().setScreen(new LocationListScreen(currentPage));
@@ -156,7 +159,7 @@ public class LocationListScreen extends Screen {
                 entry.favorite
             ));
 
-            // ピン留めトグルボタン（アイコン "📌"）
+            // ピン留めトグルボタン
             this.addDrawableChild(new ToggleIconButton(
                 LEFT_MARGIN + ICON_SIZE + ICON_GAP,
                 rowY,
@@ -183,7 +186,7 @@ public class LocationListScreen extends Screen {
             // 「説明変更」ボタン
             int descX = this.width - ICON_SIZE - LEFT_MARGIN - DESC_BUTTON_WIDTH - ICON_GAP;
             this.addDrawableChild(
-                ButtonWidget.builder(Text.literal("説明変更"), button -> 
+                ButtonWidget.builder(Text.literal("説明変更"), button ->
                     MinecraftClient.getInstance().setScreen(new LocationDescriptionEditScreen(entry)))
                     .dimensions(descX, rowY, DESC_BUTTON_WIDTH, ICON_SIZE)
                     .build()
@@ -279,6 +282,32 @@ public class LocationListScreen extends Screen {
             super.renderWidget(context, mouseX, mouseY, delta);
             if (!toggled) {
                 // トグルされていない場合、半透明オーバーレイを追加
+                context.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0x80000000);
+            }
+        }
+    }
+
+    /**
+     * FavoriteToggleIconButton は、お気に入りボタンをテクスチャで描画するための内部クラスです。<br>
+     * お気に入り状態でなければ、半透明のオーバーレイを描画していない状態と区別します。
+     */
+    private class FavoriteToggleIconButton extends ButtonWidget {
+        private boolean toggled;
+        private Identifier icon;
+
+        public FavoriteToggleIconButton(int x, int y, int width, int height, Identifier icon, PressAction onPress, boolean toggled) {
+            super(x, y, width, height, Text.literal(""), onPress, ButtonWidget.DEFAULT_NARRATION_SUPPLIER);
+            this.icon = icon;
+            this.toggled = toggled;
+        }
+        
+        @Override
+        protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
+            // テクスチャ描画
+            context.drawTexture(RenderLayer::getGuiTextured, icon,
+                    getX(), getY(), 0, 0, getWidth(), getHeight(), getWidth(), getHeight());
+            // お気に入りでない場合は半透明オーバーレイを追加
+            if (!toggled) {
                 context.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0x80000000);
             }
         }
