@@ -145,13 +145,13 @@ public class LocationListScreen extends Screen {
             int rowY = TOP_MARGIN + displayIndex * ROW_HEIGHT;
             LocationEntry entry = entries.get(i);
 
-            // お気に入りトグルボタン（従来は "★" を表示していた部分を entry.icon で表示するように変更）
+            // お気に入りトグルボタン（entry.icon を使用）
             this.addDrawableChild(new FavoriteToggleIconButton(
                 LEFT_MARGIN,
                 rowY,
                 ICON_SIZE,
                 ICON_SIZE,
-                IconTextureMap.getTexture(entry.icon), // entry.icon に対応するテクスチャを使用
+                IconTextureMap.getTexture(entry.icon),
                 button -> {
                     entry.favorite = !entry.favorite;
                     MinecraftClient.getInstance().setScreen(new LocationListScreen(currentPage));
@@ -168,20 +168,33 @@ public class LocationListScreen extends Screen {
                 Text.literal("📌"),
                 button -> {
                     entry.pinned = !entry.pinned;
+                    if (entry.share) {
+                        // 有効な場合は共有状態として、常に共有する
+                        LocationShare.send(entry);
+                    }
                     MinecraftClient.getInstance().setScreen(new LocationListScreen(currentPage));
                 },
                 entry.pinned
             ));
 
-            // シェアボタン（アイコン "🔗"）
+            // シェアボタンをトグル化
             int shareX = LEFT_MARGIN + (ICON_SIZE + ICON_GAP) * 2;
-            this.addDrawableChild(
-                ButtonWidget.builder(Text.literal("🔗"), button -> {
-                    LocationShare.send(entry);
-                })
-                .dimensions(shareX, rowY, ICON_SIZE, ICON_SIZE)
-                .build()
-            );
+            this.addDrawableChild(new ToggleIconButton(
+                shareX,
+                rowY,
+                ICON_SIZE,
+                ICON_SIZE,
+                Text.literal("🔗"),
+                button -> {
+                    entry.share = !entry.share;
+                    if (entry.share) {
+                        // 有効な場合は共有状態として、常に共有する
+                        LocationShare.send(entry);
+                    }
+                    MinecraftClient.getInstance().setScreen(new LocationListScreen(currentPage));
+                },
+                entry.share
+            ));
 
             // 「説明変更」ボタン
             int descX = this.width - ICON_SIZE - LEFT_MARGIN - DESC_BUTTON_WIDTH - ICON_GAP;
