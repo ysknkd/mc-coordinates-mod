@@ -10,21 +10,17 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.MinecraftClient;
 
-public class LocationShare {
+public class ShareLocationClientHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("mc-location");
 
     public static void register() {
-        // クライアント側の CLIENTBOUND 用ペイロード型を登録
-        PayloadTypeRegistry.playC2S().register(LocationPayload.ID, LocationPayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(LocationPayload.ID, LocationPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(ShareLocationPayload.ID, ShareLocationPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(ShareLocationPayload.ID, ShareLocationPayload.CODEC);
 
-        // グローバルレシーバーを登録してサーバーからブロードキャストされた LocationPayload を受信
-        ClientPlayNetworking.registerGlobalReceiver(LocationPayload.ID, (payload, context) -> {
-            // ネットワークスレッドからクライアントメインスレッドに切り替え
+        ClientPlayNetworking.registerGlobalReceiver(ShareLocationPayload.ID, (payload, context) -> {
             context.client().execute(() -> {
                 try {
-                    // クライアント側で位置情報として取り込む処理（例：LocationDataManagerに追加）
                     LocationDataManager.addOrUpdateEntry(new LocationEntry(payload.uuid(), payload.x(), payload.y(), payload.z(), payload.description(), payload.world(), payload.pinned(), payload.icon()));
                 } catch (Exception e) {
                     LOGGER.error("LocationPayload の受信・デコードに失敗しました", e);
@@ -37,7 +33,7 @@ public class LocationShare {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player != null) {
             // 送信者は現在のプレイヤーの UUID を利用
-            LocationPayload payload = new LocationPayload(
+            ShareLocationPayload payload = new ShareLocationPayload(
                     client.player.getUuid(),
                     entry.uuid,
                     entry.x,

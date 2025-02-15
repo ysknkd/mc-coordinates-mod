@@ -10,7 +10,7 @@ import net.minecraft.client.gui.DrawContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bungggo.mc.network.LocationShare;
+import com.bungggo.mc.network.ShareLocationClientHandler;
 import com.bungggo.mc.store.LocationDataManager;
 import com.bungggo.mc.store.LocationEntry;
 import com.bungggo.mc.util.IconTextureMap;
@@ -151,7 +151,7 @@ public class LocationListScreen extends Screen {
                 rowY,
                 ICON_SIZE,
                 ICON_SIZE,
-                IconTextureMap.getTexture(entry.icon),
+                IconTextureMap.getIcon(entry.icon),
                 button -> {
                     entry.favorite = !entry.favorite;
                     MinecraftClient.getInstance().setScreen(new LocationListScreen(currentPage));
@@ -170,7 +170,7 @@ public class LocationListScreen extends Screen {
                     entry.pinned = !entry.pinned;
                     if (entry.share) {
                         // 有効な場合は共有状態として、常に共有する
-                        LocationShare.send(entry);
+                        ShareLocationClientHandler.send(entry);
                     }
                     MinecraftClient.getInstance().setScreen(new LocationListScreen(currentPage));
                 },
@@ -189,7 +189,7 @@ public class LocationListScreen extends Screen {
                     entry.share = !entry.share;
                     if (entry.share) {
                         // 有効な場合は共有状態として、常に共有する
-                        LocationShare.send(entry);
+                        ShareLocationClientHandler.send(entry);
                     }
                     MinecraftClient.getInstance().setScreen(new LocationListScreen(currentPage));
                 },

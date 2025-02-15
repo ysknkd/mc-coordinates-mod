@@ -11,6 +11,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
+import com.mojang.authlib.GameProfile;
 import net.minecraft.util.WorldSavePath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +52,17 @@ public class Util {
         BlockPos pos = client.player.getBlockPos();
         RegistryEntry<Biome> biome = client.world.getBiome(pos);
         return biome.getIdAsString().replace("minecraft:", "");
+    }
+
+    public static GameProfile getGameProfileByUuid(MinecraftClient client, UUID uuid) {
+        if (client == null || client.player == null) {
+            return null;
+        }
+        return client.world.getPlayers().stream()
+            .filter(player -> player.getUuid().equals(uuid))
+            .findFirst()
+            .map(player -> player.getGameProfile())
+            .orElse(null);
     }
 
     // ワールド内に保存するファイル名
@@ -132,7 +144,6 @@ public class Util {
                 baseName = "MultiPlayerUnknown";
             }
         }
-        LOGGER.info("ワールド識別子: {}", baseName);
 
         // baseName をハッシュ or sanitize して返す（ここではMD5に例示）
         return md5Hash(baseName);

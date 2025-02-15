@@ -114,7 +114,7 @@ public final class LocationIndicatorRenderer implements HudRenderCallback {
             int drawY = - pinHeight;
             context.drawTexture(
                 RenderLayer::getGuiTextured,
-                IconTextureMap.getTexture(entry.icon),
+                IconTextureMap.getIcon(entry.icon),
                 drawX, drawY,
                 0.0F, 0.0F,
                 pinWidth, pinHeight, // 常に元のテクスチャ全体を描画

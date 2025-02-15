@@ -9,7 +9,9 @@ import com.bungggo.mc.event.LocationListBinding;
 import com.bungggo.mc.event.LocationSaveKeyBinding;
 import com.bungggo.mc.hud.LocationRenderer;
 import com.bungggo.mc.hud.Notification;
-import com.bungggo.mc.network.LocationShare;
+import com.bungggo.mc.hud.PlayerIndicatorRenderer;
+import com.bungggo.mc.network.PlayerLocationHandler;
+import com.bungggo.mc.network.ShareLocationClientHandler;
 import com.bungggo.mc.hud.LocationIndicatorRenderer;
 import com.bungggo.mc.store.LocationDataManager;
 import com.bungggo.mc.util.Util;
@@ -34,8 +36,10 @@ public class McLocationClient implements ClientModInitializer {
         Notification.register();
         LocationRenderer.register();
         LocationIndicatorRenderer.register();
+        PlayerIndicatorRenderer.register();
 
-        LocationShare.register();
+        ShareLocationClientHandler.register();
+        PlayerLocationHandler.register();
 
         // ログイン時：必要に応じて個別のストレージ設定があれば実施
         net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
