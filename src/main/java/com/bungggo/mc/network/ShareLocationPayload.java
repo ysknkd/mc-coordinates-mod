@@ -10,7 +10,7 @@ import java.util.UUID;
 /**
  * クライアントとサーバー間で送受信する位置情報ペイロード
  */
-public record LocationPayload(
+public record ShareLocationPayload(
         UUID sender,
         UUID uuid,
         double x,
@@ -22,12 +22,12 @@ public record LocationPayload(
         String icon
 ) implements CustomPayload {
 
-    public static final CustomPayload.Id<LocationPayload> ID = new Id<>(Identifier.of("mc-location", "location_sync"));
+    public static final CustomPayload.Id<ShareLocationPayload> ID = new Id<>(Identifier.of("mc-location", "location_sync"));
 
     // ここで独自の CODEC を定義しています
-    public static final PacketCodec<RegistryByteBuf, LocationPayload> CODEC = new PacketCodec<RegistryByteBuf, LocationPayload>() {
+    public static final PacketCodec<RegistryByteBuf, ShareLocationPayload> CODEC = new PacketCodec<RegistryByteBuf, ShareLocationPayload>() {
         @Override
-        public void encode(RegistryByteBuf buf, LocationPayload payload) {
+        public void encode(RegistryByteBuf buf, ShareLocationPayload payload) {
             buf.writeUuid(payload.sender());
             buf.writeUuid(payload.uuid());
             buf.writeDouble(payload.x());
@@ -40,7 +40,7 @@ public record LocationPayload(
         }
 
         @Override
-        public LocationPayload decode(RegistryByteBuf buf) {
+        public ShareLocationPayload decode(RegistryByteBuf buf) {
             UUID sender = buf.readUuid();
             UUID uuid = buf.readUuid();
             double x = buf.readDouble();
@@ -50,7 +50,7 @@ public record LocationPayload(
             String world = buf.readString();
             boolean pinned = buf.readBoolean();
             String icon = buf.readString();
-            return new LocationPayload(sender, uuid, x, y, z, description, world, pinned, icon);
+            return new ShareLocationPayload(sender, uuid, x, y, z, description, world, pinned, icon);
         }
     };
 
@@ -61,7 +61,7 @@ public record LocationPayload(
      * @param buf 書き込み先の RegistryByteBuf
      * @param payload エンコードする LocationPayload
      */
-    public static void encode(RegistryByteBuf buf, LocationPayload payload) {
+    public static void encode(RegistryByteBuf buf, ShareLocationPayload payload) {
         buf.writeUuid(payload.sender);
         buf.writeUuid(payload.uuid);
         buf.writeDouble(payload.x);
@@ -80,7 +80,7 @@ public record LocationPayload(
      * @param buf 読み込み元の RegistryByteBuf
      * @return 読み出した LocationPayload インスタンス
      */
-    public static LocationPayload decode(RegistryByteBuf buf) {
+    public static ShareLocationPayload decode(RegistryByteBuf buf) {
         UUID sender = buf.readUuid();
         UUID uuid = buf.readUuid();
         double x = buf.readDouble();
@@ -90,11 +90,11 @@ public record LocationPayload(
         String world = buf.readString();
         boolean pinned = buf.readBoolean();
         String icon = buf.readString();
-        return new LocationPayload(sender, uuid, x, y, z, description, world, pinned, icon);
+        return new ShareLocationPayload(sender, uuid, x, y, z, description, world, pinned, icon);
     }
 
     @Override
     public CustomPayload.Id<? extends CustomPayload> getId() {
         return ID;
     }
-} 
+}
