@@ -78,7 +78,7 @@ public class LocationListScreen extends Screen {
         int y = 10;
         this.addDrawableChild(
             ButtonWidget.builder(Text.literal("⚙"), button ->
-                MinecraftClient.getInstance().setScreen(new LocationSettingsScreen()))
+                MinecraftClient.getInstance().setScreen(new LocationSettingsScreen(this)))
             .dimensions(x, y, ICON_SIZE, ICON_SIZE)
             .build()
         );
@@ -200,7 +200,7 @@ public class LocationListScreen extends Screen {
             int descX = this.width - ICON_SIZE - LEFT_MARGIN - DESC_BUTTON_WIDTH - ICON_GAP;
             this.addDrawableChild(
                 ButtonWidget.builder(Text.literal("説明変更"), button ->
-                    MinecraftClient.getInstance().setScreen(new LocationDescriptionEditScreen(entry)))
+                    MinecraftClient.getInstance().setScreen(new LocationDescriptionEditScreen(this, entry)))
                     .dimensions(descX, rowY, DESC_BUTTON_WIDTH, ICON_SIZE)
                     .build()
             );
