@@ -5,16 +5,15 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.text.Text;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bungggo.mc.network.ShareLocationClientHandler;
 import com.bungggo.mc.store.LocationDataManager;
 import com.bungggo.mc.store.LocationEntry;
-import com.bungggo.mc.util.IconTextureMap;
-import net.minecraft.util.Identifier;
+import com.bungggo.mc.util.IconTexture;
 import net.minecraft.client.render.RenderLayer;
 
 import java.util.List;
@@ -146,12 +145,12 @@ public class LocationListScreen extends Screen {
             LocationEntry entry = entries.get(i);
 
             // お気に入りトグルボタン（entry.icon を使用）
-            this.addDrawableChild(new FavoriteToggleIconButton(
+            this.addDrawableChild(new ToggleIconButton(
                 LEFT_MARGIN,
                 rowY,
                 ICON_SIZE,
                 ICON_SIZE,
-                IconTextureMap.getIcon(entry.icon),
+                Text.literal("☆"),
                 button -> {
                     entry.favorite = !entry.favorite;
                     MinecraftClient.getInstance().setScreen(new LocationListScreen(currentPage));
@@ -160,8 +159,9 @@ public class LocationListScreen extends Screen {
             ));
 
             // ピン留めトグルボタン
+            int pinX = LEFT_MARGIN + ICON_SIZE + ICON_GAP;
             this.addDrawableChild(new ToggleIconButton(
-                LEFT_MARGIN + ICON_SIZE + ICON_GAP,
+                pinX,
                 rowY,
                 ICON_SIZE,
                 ICON_SIZE,
@@ -224,17 +224,11 @@ public class LocationListScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        // 背景描画＋タイトル描画
-        renderBackground(context, mouseX, mouseY, delta);
-        renderTitle(context);
-        
-        // 各エントリの位置情報＆説明テキストの描画
-        renderEntriesText(context);
-        
-        // ページャーエリアのテキスト描画
-        renderPaginationText(context);
-        
         super.render(context, mouseX, mouseY, delta);
+
+        renderTitle(context);
+        renderEntriesText(context);
+        renderPaginationText(context);
     }
 
     /**
@@ -252,14 +246,21 @@ public class LocationListScreen extends Screen {
         int totalEntries = entries.size();
         int startIndex = currentPage * ENTRIES_PER_PAGE;
         int endIndex = Math.min(startIndex + ENTRIES_PER_PAGE, totalEntries);
-        int textX = LEFT_MARGIN + ICON_SIZE * 3 + ICON_GAP * 3;
+        int x = LEFT_MARGIN + ICON_SIZE * 3 + ICON_GAP * 3;
+        int iconX = x - 1; // -1 is adjust ...
+        int iconSize = 8; // 8 x 8
+        int descX = iconX + iconSize + 4;
 
         for (int i = startIndex; i < endIndex; i++) {
-            int displayIndex = i - startIndex;
-            int rowY = TOP_MARGIN + displayIndex * ROW_HEIGHT + 2;
             LocationEntry entry = entries.get(i);
-            context.drawText(this.textRenderer, entry.getLocationText(), textX, rowY, 0xFFFFFF, true);
-            context.drawText(this.textRenderer, entry.description, textX, rowY + this.textRenderer.fontHeight, 0xFFFFFF, true);
+
+            int displayIndex = i - startIndex;
+            int row1y = TOP_MARGIN + displayIndex * ROW_HEIGHT + 2;
+            context.drawText(this.textRenderer, entry.getLocationText(), x, row1y, 0xFFFFFF, true);
+
+            int row2y = row1y + this.textRenderer.fontHeight;
+            context.drawTexture(RenderLayer::getGuiTextured, IconTexture.getIcon(entry.icon), iconX, row2y, 0, 0, iconSize, iconSize, iconSize, iconSize);
+            context.drawText(this.textRenderer, entry.description, descX, row2y, 0xFFFFFF, true);
         }
     }
 
@@ -295,32 +296,6 @@ public class LocationListScreen extends Screen {
             super.renderWidget(context, mouseX, mouseY, delta);
             if (!toggled) {
                 // トグルされていない場合、半透明オーバーレイを追加
-                context.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0x80000000);
-            }
-        }
-    }
-
-    /**
-     * FavoriteToggleIconButton は、お気に入りボタンをテクスチャで描画するための内部クラスです。<br>
-     * お気に入り状態でなければ、半透明のオーバーレイを描画していない状態と区別します。
-     */
-    private class FavoriteToggleIconButton extends ButtonWidget {
-        private boolean toggled;
-        private Identifier icon;
-
-        public FavoriteToggleIconButton(int x, int y, int width, int height, Identifier icon, PressAction onPress, boolean toggled) {
-            super(x, y, width, height, Text.literal(""), onPress, ButtonWidget.DEFAULT_NARRATION_SUPPLIER);
-            this.icon = icon;
-            this.toggled = toggled;
-        }
-        
-        @Override
-        protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
-            // テクスチャ描画
-            context.drawTexture(RenderLayer::getGuiTextured, icon,
-                    getX(), getY(), 0, 0, getWidth(), getHeight(), getWidth(), getHeight());
-            // お気に入りでない場合は半透明オーバーレイを追加
-            if (!toggled) {
                 context.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0x80000000);
             }
         }

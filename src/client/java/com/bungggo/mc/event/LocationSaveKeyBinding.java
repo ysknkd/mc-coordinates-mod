@@ -10,7 +10,7 @@ import net.minecraft.util.math.Vec3d;
 import com.bungggo.mc.config.LocationConfig;
 import com.bungggo.mc.store.LocationDataManager;
 import com.bungggo.mc.store.LocationEntry;
-import com.bungggo.mc.util.IconTextureMap;
+import com.bungggo.mc.util.IconTexture;
 import com.bungggo.mc.util.Util;
 
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -54,7 +54,7 @@ public class LocationSaveKeyBinding implements Consumer<MinecraftClient> {
         
         String worldName = Util.getCurrentWorldName(client);
         String description = Util.getBiome(client);
-        String icon = IconTextureMap.getIconName(client);
+        String icon = IconTexture.getIconName(client);
 
         // 位置情報エントリ生成。保存時のピン状態は設定値を利用
         LocationEntry entry = new LocationEntry(x, y, z, description, worldName, LocationConfig.getDefaultPinState(), icon);

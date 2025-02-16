@@ -12,7 +12,7 @@ import org.joml.Vector3f;
 
 import com.bungggo.mc.store.LocationDataManager;
 import com.bungggo.mc.store.LocationEntry;
-import com.bungggo.mc.util.IconTextureMap;
+import com.bungggo.mc.util.IconTexture;
 import com.bungggo.mc.util.Util;
 
 import java.util.Optional;
@@ -114,7 +114,7 @@ public final class LocationIndicatorRenderer implements HudRenderCallback {
             int drawY = - pinHeight;
             context.drawTexture(
                 RenderLayer::getGuiTextured,
-                IconTextureMap.getIcon(entry.icon),
+                IconTexture.getIcon(entry.icon),
                 drawX, drawY,
                 0.0F, 0.0F,
                 pinWidth, pinHeight, // 常に元のテクスチャ全体を描画
