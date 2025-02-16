@@ -2,7 +2,7 @@
 
 import com.bungggo.mc.store.PlayerLocationCache;
 import com.bungggo.mc.store.PlayerLocationEntity;
-import com.bungggo.mc.util.IconTextureMap;
+import com.bungggo.mc.util.IconTexture;
 import com.bungggo.mc.util.Util;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
@@ -99,7 +99,7 @@ public final class PlayerIndicatorRenderer implements HudRenderCallback {
                 PlayerLocationCache.remove(location.uuid);
                 continue;
             }
-            Identifier texture = IconTextureMap.getPlayerIcon(profile);
+            Identifier texture = IconTexture.getPlayerIcon(profile);
 
             // アイコン描画（アイコンサイズは16×16ピクセル）
             final int iconSize = 16;
