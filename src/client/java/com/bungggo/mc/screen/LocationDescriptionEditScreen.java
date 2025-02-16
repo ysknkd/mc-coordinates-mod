@@ -17,12 +17,19 @@ import net.minecraft.text.Text;
 @Environment(EnvType.CLIENT)
 public class LocationDescriptionEditScreen extends Screen {
 
+    private final Screen parent;
     private final LocationEntry entry;
     private TextFieldWidget textField;
 
-    public LocationDescriptionEditScreen(LocationEntry entry) {
+    public LocationDescriptionEditScreen(Screen parent, LocationEntry entry) {
         super(Text.literal("説明変更"));
+        this.parent = parent;
         this.entry = entry;
+    }
+
+    @Override
+    public void close() {
+        MinecraftClient.getInstance().setScreen(this.parent);
     }
 
     @Override
@@ -43,7 +50,7 @@ public class LocationDescriptionEditScreen extends Screen {
             ButtonWidget.builder(Text.literal("保存"), button -> {
                 // テキストフィールドの内容でエントリを更新し、一覧画面へ戻る
                 entry.description = textField.getText();
-                MinecraftClient.getInstance().setScreen(new LocationListScreen());
+                close();
             })
             .dimensions(centerX - textFieldWidth / 2, centerY + textFieldHeight, textFieldWidth / 2 - 2, 20)
             .build()
@@ -52,7 +59,7 @@ public class LocationDescriptionEditScreen extends Screen {
         // 「キャンセル」ボタン
         this.addDrawableChild(
             ButtonWidget.builder(Text.literal("キャンセル"), button -> {
-                MinecraftClient.getInstance().setScreen(new LocationListScreen());
+                close();
             })
             .dimensions(centerX + 2, centerY + textFieldHeight, textFieldWidth / 2 - 2, 20)
             .build()
@@ -95,9 +102,4 @@ public class LocationDescriptionEditScreen extends Screen {
         }
         return super.charTyped(chr, keyCode);
     }
-
-    @Override
-    public void tick() {
-        super.tick();
-    }
-} 
+}

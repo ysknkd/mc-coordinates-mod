@@ -5,7 +5,6 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.DrawContext;
 import net.minecraft.text.Text;
 import com.bungggo.mc.config.LocationConfig;
 
@@ -16,8 +15,16 @@ import com.bungggo.mc.config.LocationConfig;
 @Environment(EnvType.CLIENT)
 public class LocationSettingsScreen extends Screen {
 
-    public LocationSettingsScreen() {
+    private final Screen parent;
+
+    public LocationSettingsScreen(Screen parent) {
         super(Text.literal("設定"));
+        this.parent = parent;
+    }
+
+    @Override
+    public void close() {
+        MinecraftClient.getInstance().setScreen(parent);
     }
 
     @Override
@@ -42,17 +49,12 @@ public class LocationSettingsScreen extends Screen {
 
         // 戻るボタン：LocationListScreen に戻る
         this.addDrawableChild(
-            ButtonWidget.builder(Text.literal("戻る"), button ->
-                MinecraftClient.getInstance().setScreen(new LocationListScreen()))
+            ButtonWidget.builder(Text.literal("戻る"), button -> {
+                close();
+            })
             .dimensions(centerX - 50, centerY + 30, 100, 20)
             .build()
         );
-    }
-
-    @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        renderBackground(context, mouseX, mouseY, delta);
-        super.render(context, mouseX, mouseY, delta);
     }
 
     @Override
