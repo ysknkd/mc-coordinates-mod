@@ -1,34 +1,34 @@
 {
 	"schemaVersion": 1,
-	"id": "mc-location",
+	"id": "mc-coordinates",
 	"version": "${version}",
-	"name": "mc-location",
+	"name": "mc-coordinates",
 	"description": "This is an example description! Tell everyone what your mod is about!",
 	"authors": [
-		"Me!"
+		"ysknkd"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",
 		"sources": "https://github.com/FabricMC/fabric-example-mod"
 	},
 	"license": "CC0-1.0",
-	"icon": "assets/mc-location/icon.png",
+	"icon": "assets/mc-coordinates/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"com.bungggo.mc.McLocation"
+			"dev.ysknkd.mc.coordinates.CoordinatesApp"
 		],
 		"client": [
-			"com.bungggo.mc.McLocationClient"
+			"dev.ysknkd.mc.coordinates.CoordinatesClient"
 		],
 		"server": [
-			"com.bungggo.mc.McLocationServer"
+			"dev.ysknkd.mc.coordinates.CoordinatesServer"
 		]
 	},
 	"mixins": [
-		"mc-location.mixins.json",
+		"mc-coordinates.mixins.json",
 		{
-			"config": "mc-location.client.mixins.json",
+			"config": "mc-coordinates.client.mixins.json",
 			"environment": "client"
 		}
 	],
