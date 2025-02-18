@@ -8,9 +8,6 @@ import net.minecraft.util.Identifier;
 
 import java.util.UUID;
 
-/**
- * クライアントとサーバー間で送受信する位置情報ペイロード
- */
 public record ShareCoordinatesPayload(
         UUID sender,
         UUID uuid,
@@ -25,7 +22,6 @@ public record ShareCoordinatesPayload(
 
     public static final CustomPayload.Id<ShareCoordinatesPayload> ID = new Id<>(Identifier.of(CoordinatesApp.MOD_ID, "share_coordinates"));
 
-    // ここで独自の CODEC を定義しています
     public static final PacketCodec<RegistryByteBuf, ShareCoordinatesPayload> CODEC = new PacketCodec<RegistryByteBuf, ShareCoordinatesPayload>() {
         @Override
         public void encode(RegistryByteBuf buf, ShareCoordinatesPayload payload) {

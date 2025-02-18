@@ -12,6 +12,7 @@ import dev.ysknkd.mc.coordinates.hud.Notification;
 import dev.ysknkd.mc.coordinates.hud.PlayerIndicatorRenderer;
 import dev.ysknkd.mc.coordinates.network.PlayerCoordinatesHandler;
 import dev.ysknkd.mc.coordinates.network.ShareCoordinatesClientHandler;
+import dev.ysknkd.mc.coordinates.network.PlayerLogoutClientHandler;
 import dev.ysknkd.mc.coordinates.hud.IndicatorRenderer;
 import dev.ysknkd.mc.coordinates.store.CoordinatesDataManager;
 import dev.ysknkd.mc.coordinates.util.Util;
@@ -31,6 +32,7 @@ public class CoordinatesClient implements ClientModInitializer {
 
         ShareCoordinatesClientHandler.register();
         PlayerCoordinatesHandler.register();
+        PlayerLogoutClientHandler.register();
 
         // ログイン時：必要に応じて個別のストレージ設定があれば実施
         net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {

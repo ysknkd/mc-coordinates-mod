@@ -8,7 +8,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 
 public class PlayerCoordinatesBroadcaster implements ServerTickEvents.EndTick {
 
-    // サーバー起動時にこのメソッドで登録します
     public static void register() {
         PayloadTypeRegistry.playS2C().register(PlayerCoordinatesPayload.ID, PlayerCoordinatesPayload.CODEC);
         ServerTickEvents.END_SERVER_TICK.register(new PlayerCoordinatesBroadcaster());
