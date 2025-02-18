@@ -2,9 +2,6 @@ package dev.ysknkd.mc.coordinates;
 
 import net.fabricmc.api.ModInitializer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class CoordinatesApp implements ModInitializer {
 	public static final String MOD_ID = "mc-coodinates";
 

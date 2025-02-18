@@ -10,10 +10,6 @@ import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Uuids;
 
-/**
- * サーバー側で作成し、CustomPayload で送信するプレイヤーの位置情報パケットです。<br>
- * JSON ではなく、バイナリ形式（PacketByteBuf を利用）でエンコード／デコードを行います。
- */
 public record PlayerCoordinatesPayload(
     UUID uuid,
     double x,
