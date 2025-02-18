@@ -3,8 +3,6 @@
 import dev.ysknkd.mc.coordinates.store.PlayerCoordinatesCache;
 import dev.ysknkd.mc.coordinates.store.PlayerCoordinates;
 import dev.ysknkd.mc.coordinates.util.IconTexture;
-import dev.ysknkd.mc.coordinates.util.Util;
-import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
@@ -94,15 +92,7 @@ public final class PlayerIndicatorRenderer implements HudRenderCallback {
             context.getMatrices().scale(scale, scale, 1.0F);
 
             // プレイヤーの GameProfile からアイコン（スキンテクスチャ）を取得
-            Identifier texture = IconTexture.getPlayerIconFromCache(playerEntity.uuid);
-            if (texture == null) {
-                GameProfile profile = Util.getGameProfileByUuid(client, playerEntity.uuid);
-                if (profile == null) {
-                    PlayerCoordinatesCache.remove(playerEntity.uuid);
-                    continue;
-                }
-                texture = IconTexture.getPlayerIcon(profile);
-            }
+            Identifier texture = IconTexture.getPlayerIcon(playerEntity.uuid);
 
             // アイコン描画（アイコンサイズは16×16ピクセル）
             final int iconSize = 16;

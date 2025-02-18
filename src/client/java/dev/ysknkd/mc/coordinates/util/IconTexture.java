@@ -84,51 +84,47 @@ public class IconTexture {
         return ICON_MAP.getOrDefault(icon, DEFAULT_TEXTURE);
     }
 
-    public static Identifier getPlayerIconFromCache(UUID playerId) {
-        if (FACE_CACHE.containsKey(playerId)) {
-            return FACE_CACHE.get(playerId);
-        }
-        return null;
-    }
-
     /**
-     * 指定された GameProfile に対応する顔部分のテクスチャ Identifier を返します。<br>
-     * 未生成の場合は、スキンのテクスチャから顔の領域 (8,8)～(16,16) を切り出して動的テクスチャとして登録します。<br>
-     * なお、テクスチャ取得には getSkinTextures を用い、取得できなかった場合はデフォルトの "steve" を返します。
+     * Returns the face portion texture Identifier for the given player UUID.
+     * If the texture is not generated yet, it extracts the face area from the player's skin
+     * and registers it as a dynamic texture.
+     * In case of a failure, it returns the default "steve" texture.
      *
-     * @param profile 取得対象の GameProfile
-     * @return 顔部分のテクスチャ Identifier。取得できなかった場合はデフォルトの "steve" テクスチャ
+     * @param playerId The UUID of the player.
+     * @return The Identifier for the face texture or the default "steve" texture if retrieval fails.
      */
-    public static Identifier getPlayerIcon(GameProfile profile) {
-        if (profile == null) {
+    public static Identifier getPlayerIcon(UUID playerId) {
+        if (playerId == null) {
             return Identifier.of("minecraft", "textures/entity/steve.png");
         }
-        UUID playerId = profile.getId();
+        // 既にキャッシュにある場合はそれを返す
         if (FACE_CACHE.containsKey(playerId)) {
             return FACE_CACHE.get(playerId);
         }
 
         MinecraftClient client = MinecraftClient.getInstance();
         PlayerSkinProvider skinProvider = client.getSkinProvider();
+
+        // UUID からダミーの GameProfile を作成してスキンを取得
+        GameProfile profile = new GameProfile(playerId, null);
         SkinTextures skin = skinProvider.getSkinTextures(profile);
         Identifier texture = skin.texture();
         if (texture == null) {
             return Identifier.of("minecraft", "textures/entity/steve.png");
         }
 
-        // NativeImage の取得（TextureManager に登録済みか、フォールバックとしてリソースから読み込み）
+        // TextureManager から取得済みの場合、NativeImage を利用
         NativeImage fullImage = null;
         AbstractTexture abstractTexture = client.getTextureManager().getTexture(texture);
         if (abstractTexture instanceof NativeImageBackedTexture) {
             NativeImageBackedTexture skinTexture = (NativeImageBackedTexture) abstractTexture;
             fullImage = skinTexture.getImage();
         } else {
-            // フォールバック処理：リソースマネージャーから直接読み込む
+            // フォールバック：ResourceManager から直接読み込む
             ResourceManager resourceManager = client.getResourceManager();
             try (InputStream stream = resourceManager.open(texture)) {
                 fullImage = NativeImage.read(stream);
             } catch (IOException e) {
-                e.printStackTrace();
                 return Identifier.of("minecraft", "textures/entity/steve.png");
             }
         }
@@ -141,7 +137,7 @@ public class IconTexture {
         final int faceY = 8;
         final int faceWidth = 8;
         final int faceHeight = 8;
-        
+
         // 新規 NativeImage を生成し、顔部分のピクセル（ARGB値）をコピー
         NativeImage faceImage = new NativeImage(faceWidth, faceHeight, false);
         for (int x = 0; x < faceWidth; x++) {
