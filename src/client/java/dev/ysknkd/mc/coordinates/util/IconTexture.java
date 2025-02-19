@@ -91,9 +91,10 @@ public class IconTexture {
      * In case of a failure, it returns the default "steve" texture.
      *
      * @param playerId The UUID of the player.
+     * @param playerName The name of the player.
      * @return The Identifier for the face texture or the default "steve" texture if retrieval fails.
      */
-    public static Identifier getPlayerIcon(UUID playerId) {
+    public static Identifier getPlayerIcon(UUID playerId, String playerName) {
         if (playerId == null) {
             return Identifier.of("minecraft", "textures/entity/steve.png");
         }
@@ -106,7 +107,7 @@ public class IconTexture {
         PlayerSkinProvider skinProvider = client.getSkinProvider();
 
         // UUID からダミーの GameProfile を作成してスキンを取得
-        GameProfile profile = new GameProfile(playerId, null);
+        GameProfile profile = new GameProfile(playerId, playerName);
         SkinTextures skin = skinProvider.getSkinTextures(profile);
         Identifier texture = skin.texture();
         if (texture == null) {
