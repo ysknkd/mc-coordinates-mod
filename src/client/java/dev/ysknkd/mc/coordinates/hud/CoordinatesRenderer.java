@@ -8,6 +8,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderTickCounter;
+import net.minecraft.text.Text;
 
 public class CoordinatesRenderer implements HudRenderCallback {
     // 色定数 (ARGB形式に変更)
@@ -25,7 +26,7 @@ public class CoordinatesRenderer implements HudRenderCallback {
                 if (client == null || client.getToastManager() == null) {
                     return;
                 }
-                Notification.show("Coordinates saved");
+                Notification.show(Text.translatable("modid.coordinates_save.success").getString());
             }
         });
     }

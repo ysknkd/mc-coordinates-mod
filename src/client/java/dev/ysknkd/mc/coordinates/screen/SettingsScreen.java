@@ -18,7 +18,7 @@ public class SettingsScreen extends Screen {
     private final Screen parent;
 
     public SettingsScreen(Screen parent) {
-        super(Text.literal("設定"));
+        super(Text.translatable("modid.settings.title"));
         this.parent = parent;
     }
 
@@ -32,16 +32,20 @@ public class SettingsScreen extends Screen {
         int centerX = this.width / 2;
         int centerY = this.height / 2 - 10;
 
-        // ピン状態のトグルボタン
-        String pinStatusText = Config.getDefaultPinState() ? "有効" : "無効";
+        // boolean に応じてテキストリソースから取得する
+        Text pinStatusText = Config.getDefaultPinState() ?
+                Text.translatable("modid.settings.enabled") :
+                Text.translatable("modid.settings.disabled");
+
         this.addDrawableChild(
             ButtonWidget.builder(
-                Text.literal("保存時にピン状態を: " + pinStatusText),
+                Text.translatable("modid.settings.pin_state.title", pinStatusText),
                 button -> {
-                    // ON/OFF をトグルして、ボタン表示を更新
                     Config.toggleDefaultPinState();
-                    String newStatus = Config.getDefaultPinState() ? "有効" : "無効";
-                    button.setMessage(Text.literal("保存時にピン状態を: " + newStatus));
+                    Text newStatus = Config.getDefaultPinState() ?
+                            Text.translatable("modid.settings.enabled") :
+                            Text.translatable("modid.settings.disabled");
+                    button.setMessage(Text.translatable("modid.settings.pin_state.title", newStatus));
                 })
             .dimensions(centerX - 100, centerY, 200, 20)
             .build()
@@ -49,9 +53,7 @@ public class SettingsScreen extends Screen {
 
         // 戻るボタン：CoordinatesListScreen に戻る
         this.addDrawableChild(
-            ButtonWidget.builder(Text.literal("戻る"), button -> {
-                close();
-            })
+            ButtonWidget.builder(Text.translatable("modid.button.back"), button -> close())
             .dimensions(centerX - 50, centerY + 30, 100, 20)
             .build()
         );
