@@ -1,0 +1,14 @@
+{
+    "modid.coordinates_list.title": "座標リスト",
+    "modid.coordinates_save.success": "座標を保存しました",
+    "modid.settings.title": "設定",
+    "modid.settings.pin_state.title": "保存時にピン状態: %s",
+    "modid.settings.enabled": "有効",
+    "modid.settings.disabled": "無効",
+    "modid.button.close": "閉じる",
+    "modid.button.edit_description": "説明変更",
+    "modid.button.back": "戻る",
+    "modid.button.save": "保存",
+    "modid.button.cancel": "キャンセル",
+    "modid.description.label": "説明"
+}

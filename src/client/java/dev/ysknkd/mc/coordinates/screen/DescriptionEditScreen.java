@@ -22,7 +22,7 @@ public class DescriptionEditScreen extends Screen {
     private TextFieldWidget textField;
 
     public DescriptionEditScreen(Screen parent, Coordinates entry) {
-        super(Text.literal("説明変更"));
+        super(Text.translatable("modid.description.label"));
         this.parent = parent;
         this.entry = entry;
     }
@@ -39,7 +39,7 @@ public class DescriptionEditScreen extends Screen {
         int textFieldHeight = 20;
         int centerX = this.width / 2;
         int centerY = this.height / 2;
-        textField = new TextFieldWidget(this.textRenderer, centerX - textFieldWidth / 2, centerY - textFieldHeight / 2, textFieldWidth, textFieldHeight, Text.literal("説明"));
+        textField = new TextFieldWidget(this.textRenderer, centerX - textFieldWidth / 2, centerY - textFieldHeight / 2, textFieldWidth, textFieldHeight, Text.translatable("modid.description.label"));
         textField.setText(entry.description);
         textField.setChangedListener(text -> {}); // 必要に応じてリスナーを追加
         this.addSelectableChild(textField);
@@ -47,7 +47,7 @@ public class DescriptionEditScreen extends Screen {
 
         // 「保存」ボタン
         this.addDrawableChild(
-            ButtonWidget.builder(Text.literal("保存"), button -> {
+            ButtonWidget.builder(Text.translatable("modid.button.save"), button -> {
                 // テキストフィールドの内容でエントリを更新し、一覧画面へ戻る
                 entry.description = textField.getText();
                 close();
@@ -58,7 +58,7 @@ public class DescriptionEditScreen extends Screen {
 
         // 「キャンセル」ボタン
         this.addDrawableChild(
-            ButtonWidget.builder(Text.literal("キャンセル"), button -> {
+            ButtonWidget.builder(Text.translatable("modid.button.cancel"), button -> {
                 close();
             })
             .dimensions(centerX + 2, centerY + textFieldHeight, textFieldWidth / 2 - 2, 20)

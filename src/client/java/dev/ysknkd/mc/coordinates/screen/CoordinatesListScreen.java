@@ -48,7 +48,7 @@ public class CoordinatesListScreen extends Screen {
     private static final int PAGINATION_AREA_OFFSET = 60; // 画面下部からのオフセット
 
     public CoordinatesListScreen() {
-        super(Text.literal("保存データ一覧"));
+        super(Text.translatable("modid.coordinates_list.title"));
     }
 
     // ページ番号を指定するコンストラクタ
@@ -91,7 +91,7 @@ public class CoordinatesListScreen extends Screen {
         int x = this.width / 2 - (CLOSE_BUTTON_WIDTH / 2);
         int y = this.height - 30;
         this.addDrawableChild(
-            ButtonWidget.builder(Text.literal("閉じる"), button -> MinecraftClient.getInstance().setScreen(null))
+            ButtonWidget.builder(Text.translatable("modid.button.close"), button -> MinecraftClient.getInstance().setScreen(null))
                 .dimensions(x, y, CLOSE_BUTTON_WIDTH, CLOSE_BUTTON_HEIGHT)
                 .build()
         );
@@ -199,7 +199,7 @@ public class CoordinatesListScreen extends Screen {
             // 「説明変更」ボタン
             int descX = this.width - ICON_SIZE - LEFT_MARGIN - DESC_BUTTON_WIDTH - ICON_GAP;
             this.addDrawableChild(
-                ButtonWidget.builder(Text.literal("説明変更"), button ->
+                ButtonWidget.builder(Text.translatable("modid.button.edit_description"), button ->
                     MinecraftClient.getInstance().setScreen(new DescriptionEditScreen(this, entry)))
                     .dimensions(descX, rowY, DESC_BUTTON_WIDTH, ICON_SIZE)
                     .build()
