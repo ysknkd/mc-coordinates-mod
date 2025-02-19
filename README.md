@@ -31,4 +31,6 @@ In Survival Mode, a bunch of different monsters can appear, which can be scary f
 
 ## License
 
-This project is licensed under the MIT License.
+This project (the mod itself) is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+This mod uses third-party libraries, including Fabric API, which is licensed under the Apache License 2.0.
