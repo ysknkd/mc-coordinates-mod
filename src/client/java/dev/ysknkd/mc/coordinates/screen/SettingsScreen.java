@@ -9,8 +9,7 @@ import net.minecraft.text.Text;
 import dev.ysknkd.mc.coordinates.config.Config;
 
 /**
- * 位置情報保存の設定画面です。<br>
- * 「保存時にピン状態を初期状態として有効にするか」を設定できます。
+ * Settings screen
  */
 @Environment(EnvType.CLIENT)
 public class SettingsScreen extends Screen {
@@ -32,7 +31,7 @@ public class SettingsScreen extends Screen {
         int centerX = this.width / 2;
         int centerY = this.height / 2 - 10;
 
-        // boolean に応じてテキストリソースから取得する
+        // Retrieve text resource based on the current boolean value
         Text pinStatusText = Config.getDefaultPinState() ?
                 Text.translatable("modid.settings.enabled") :
                 Text.translatable("modid.settings.disabled");
@@ -51,7 +50,7 @@ public class SettingsScreen extends Screen {
             .build()
         );
 
-        // 戻るボタン：CoordinatesListScreen に戻る
+        // Back button: returns to CoordinatesListScreen
         this.addDrawableChild(
             ButtonWidget.builder(Text.translatable("modid.button.back"), button -> close())
             .dimensions(centerX - 50, centerY + 30, 100, 20)

@@ -10,7 +10,7 @@ import net.minecraft.util.Uuids;
 import java.util.UUID;
 
 /**
- * ログアウト通知用のペイロードです。ログアウトしたプレイヤーのUUIDのみを保持します。
+ * Payload for logout notification. Holds only the UUID of the logged-out player.
  */
 public record PlayerLogoutPayload(UUID uuid) implements CustomPayload {
 

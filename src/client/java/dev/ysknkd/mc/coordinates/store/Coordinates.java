@@ -3,14 +3,9 @@ package dev.ysknkd.mc.coordinates.store;
 import java.util.UUID;
 
 /**
- * 位置データのエントリ。
- * 各エントリは説明、フェードアウト用の保存時刻、
- * お気に入り状態およびピン留め状態を持ちます。
- * 位置情報は文字列ではなく数値 (x, y, z) として管理されます。
- * 追加で所属するワールド（オーバーワールド、ネザーなど）も保存します。
+ * Coordinate entry.
  */
 public class Coordinates {
-    // 各エントリごとに一意の UUID を持ちます
     public UUID uuid;
     public double x;
     public double y;
@@ -21,24 +16,22 @@ public class Coordinates {
     public boolean pinned;
     public long savedTime;
     
-    // 所属ワールドを保存するフィールド
     public String world;
 
-    // アイコン識別子。自動設定されたアイコンを保持し、後から手動での上書きも可能です
     public String icon;
     public boolean share;
 
     /**
-     * 新規エントリ作成時に、新しい UUID を自動生成します。
+     * Constructor for new entries, automatically generating a new UUID.
      *
-     * @param x 位置のx座標
-     * @param y 位置のy座標
-     * @param z 位置のz座標
-     * @param description 位置情報の説明
-     * @param world 所属するワールド（例: "minecraft:overworld", "minecraft:the_nether"）
+     * @param x The x-coordinate.
+     * @param y The y-coordinate.
+     * @param z The z-coordinate.
+     * @param description Description for the coordinate.
+     * @param world The associated world (e.g., "minecraft:overworld", "minecraft:the_nether").
      */
     public Coordinates(double x, double y, double z, String description, String world, boolean pinned, String icon) {
-        this.uuid = UUID.randomUUID();  // 自動生成
+        this.uuid = UUID.randomUUID();
         this.x = x;
         this.y = y;
         this.z = z;
@@ -64,10 +57,9 @@ public class Coordinates {
     }
 
     /**
-     * 位置データをフォーマットされた文字列に変換します。  
-     * 表示用途などに利用できます。
+     * Formats the coordinate data into a string for display.
      *
-     * @return フォーマット済みの位置文字列
+     * @return The formatted coordinate string.
      */
     public String getCoordinatesText() {
         String worldName = world.replace("minecraft:", "");

@@ -15,14 +15,14 @@ public class PlayerCoordinatesBroadcaster implements ServerTickEvents.EndTick {
 
     @Override
     public void onEndTick(MinecraftServer server) {
-        // 20 tick 毎（約1秒間隔）に位置情報を配信
+        // Broadcast coordinate data every 20 ticks (approximately 1 second interval)
         if (server.getTicks() % 20 == 0) {
             send(server);
         }
     }
 
     private void send(MinecraftServer server) {
-        // 各受信者 (recipient) ごとに、recipient 以外の各プレイヤーの位置情報を個別送信
+        // For each recipient, send individual coordinate data of every other player
         for (ServerPlayerEntity recipient : server.getPlayerManager().getPlayerList()) {
             for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
                 if (!player.getUuid().equals(recipient.getUuid())) {

@@ -12,40 +12,40 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
- * 位置情報保存に関する各種設定を保持するクラスです。<br>
- * このクラスは設定の JSON 保存とロードをサポートしています。<br>
+ * Configuration for saving coordinate settings.
+ * Allows toggling the default pin state for new entries.
  */
 public class Config {
-    // 保存時にピン状態を初期状態として有効にするか（デフォルトは無効）
+    // Determines whether the pin state is enabled by default when saving (default is false)
     private static final boolean DEFAULT_PIN_STATE = false;
     private static boolean defaultPinState = false;
-    // 現在の worldId を保持するフィールド（初期値 "unknown"）
+    // Stores the current worldId (initially "unknown")
     private static String currentWorldId = "unknown";
 
-    // 内部用構造体：設定データを JSON として保存する際の構造体
+    // Internal structure for JSON serialization of configuration data
     private static class ConfigData {
         boolean defaultPinState;
     }
     
     /**
-     * worldId に応じた設定ファイルのパスを返します。<br>
+     * Returns the configuration file path for the specified worldId.
      *
-     * @param worldId 対象のワールドID
-     * @return 設定ファイルのパス
+     * @param worldId The target world ID
+     * @return The configuration file path
      */
     private static Path getConfigFilePath(String worldId) {
         return Paths.get("config", CoordinatesApp.MOD_ID, worldId, "config.json");
     }
     
     /**
-     * 指定されたワールドIDの設定ファイルから設定を読み込みます。<br>
-     * ファイルが存在しない場合は既定値（defaultPinState=false）を維持します。<br>
-     * また、内部で現在の worldId を保持します。
+     * Loads configuration from the file associated with the specified worldId.
+     * If the file does not exist, the default value (defaultPinState=false) is retained.
+     * Also stores the current worldId internally.
      *
-     * @param worldId 読み込み対象のワールドID
+     * @param worldId The world ID for which to load the configuration
      */
     public static void load(String worldId) {
-        currentWorldId = worldId; // worldId を内部に保持
+        currentWorldId = worldId; // Store the worldId internally
         Path configFile = getConfigFilePath(worldId);
         if (!Files.exists(configFile)) {
             return;
@@ -62,11 +62,8 @@ public class Config {
     }
     
     /**
-     * 現在の設定を、指定されたワールドIDの設定ファイルへ保存します。<br>
-     * 保存先ディレクトリが存在しない場合は自動的に作成されます。<br>
-     * また、引数で渡された worldId を内部に保持します。
-     *
-     * @param worldId 保存対象のワールドID
+     * Saves the current configuration to the file corresponding to the stored worldId.
+     * Automatically creates the target directory if it does not exist.
      */
     public static void save() {
         Path configFile = getConfigFilePath(Config.currentWorldId);
@@ -86,30 +83,33 @@ public class Config {
     }
     
     /**
-     * ピン状態の初期設定を変更します。
+     * Sets the default pin state for saving coordinates.
      *
-     * @param state true なら有効、false なら無効
+     * @param state true to enable, false to disable
      */
     public static void setDefaultPinState(boolean state) {
         defaultPinState = state;
     }
     
     /**
-     * 現在のピン状態設定を返します。
+     * Returns the current default pin state.
      *
-     * @return trueなら有効、falseなら無効
+     * @return true if enabled, false otherwise
      */
     public static boolean getDefaultPinState() {
         return defaultPinState;
     }
     
     /**
-     * ピン状態を反転させます（有効なら無効、無効なら有効に）。
+     * Toggles the default pin state (enables it if disabled, disables it if enabled).
      */
     public static void toggleDefaultPinState() {
         defaultPinState = !defaultPinState;
     }
 
+    /**
+     * Resets the configuration to its default pin state.
+     */
     public static void reset() {
         defaultPinState = DEFAULT_PIN_STATE;
     }

@@ -6,9 +6,10 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.option.SimpleOption;
 import net.minecraft.client.render.RenderTickCounter;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
+
 import net.minecraft.client.render.Camera;
 import net.minecraft.util.math.Vec3d;
-import org.joml.Vector3f;
 
 import dev.ysknkd.mc.coordinates.store.CoordinatesDataManager;
 import dev.ysknkd.mc.coordinates.store.Coordinates;
@@ -19,9 +20,9 @@ import java.util.Optional;
 import net.minecraft.client.render.RenderLayer;
 
 /**
- * 簡易版のインジケーターを HUD に描画します。
- * プレイヤーのカメラ位置と各ピンの位置から水平面上の角度を計算し、
- * 画面中心から一定距離の位置に四角形（赤色）として表示します。
+ * Renders a simplified indicator on the HUD.
+ * Calculates the angle on the horizontal plane from the player's camera position to each pinned coordinate,
+ * and displays a red rectangle at a fixed distance from the center of the screen.
  */
 public final class IndicatorRenderer implements HudRenderCallback {
 
@@ -47,24 +48,23 @@ public final class IndicatorRenderer implements HudRenderCallback {
         Matrix4f viewMatrix = computeViewMatrix(camera);
         Matrix4f viewProjMatrix = projectionMatrix.mul(viewMatrix, new Matrix4f());
 
-        // ピン画像の描画サイズ（元のサイズ）
+        // Pin image drawing dimensions (original size)
         final int pinWidth = 16;
         final int pinHeight = 16;
 
-        // onHudRender() 内で共通計算を行います
+        // Common calculations within onHudRender()
         long time = System.currentTimeMillis();
-        final float period = 1000.0F;  // 2秒周期
-        float t = (time % (long) period) / period;  // 0.0～1.0 に正規化
-
-        float minAlpha = 0.3F;  // 最小透明度（30%）
-        float maxAlpha = 1.0F;  // 最大透明度（100%）
+        final float period = 1000.0F;  // 1-second cycle period
+        float t = (time % (long) period) / period;
+        float minAlpha = 0.3F;  // Minimum opacity (30%)
+        float maxAlpha = 1.0F;  // Maximum opacity (100%)
         float ease;
         if (t < 0.5F) {
-            // 前半：0～0.5 の範囲を正規化、easeInQuintで上昇
+            // First half: normalize 0–0.5 range and apply quintic easing in
             float progress = t / 0.5F;
             ease = (float) Math.pow(progress, 5);
         } else {
-            // 後半：0.5～1 の範囲は (1 - t) を正規化、easeInQuintで下降
+            // Second half: normalize (1 - t) over the range 0.5–1 and apply quintic easing out
             float progress = (1.0F - t) / 0.5F;
             ease = (float) Math.pow(progress, 5);
         }
@@ -72,64 +72,60 @@ public final class IndicatorRenderer implements HudRenderCallback {
         int alphaInt = (int)(alphaValue * 255);
         int tintColor = (alphaInt << 24) | 0xFFFFFF;
 
-        // 各ピンごとに処理（サイズをカメラとの距離で調整）
+        // Process each pinned coordinate entry
         for (Coordinates entry : CoordinatesDataManager.getPinnedEntriesByWorld(Util.getCurrentWorldName(client))) {
-            Optional<ScreenCoordinate> optionalCoord = calculateScreenCoordinate(entry, viewProjMatrix, screenWidth, screenHeight);
-            if (!optionalCoord.isPresent()) continue;
-            ScreenCoordinate coord = optionalCoord.get();
-
-            // ピン位置のワールド座標（ブロック中央）を計算
+            // Compute the block center for world coordinates
             float worldX = (float) (Math.floor(entry.x) + 0.5);
             float worldY = (float) (Math.floor(entry.y) + 0.5);
             float worldZ = (float) (Math.floor(entry.z) + 0.5);
 
-            // カメラからの距離を計算
+            // Calculate the distance from the camera
             Vec3d cameraPos = camera.getPos();
             double distance = cameraPos.distanceTo(new Vec3d(worldX, worldY, worldZ));
 
-            // 距離に応じたスケールを計算（近いと最大、遠いと最小）
-            final double nearDistance = 10.0;   // この距離以下なら最大サイズ（scale = 1.0）
-            final double farDistance = 100.0;     // この距離以上なら最小サイズ
-            final float minScale = 0.4f;          // 最小スケール（40%）
-            final float maxScale = 1.0f;          // 最大スケール（100%）
-
+            // Determine scale based on distance (closer gives maximum scale; farther gives minimum)
+            final double nearDistance = 10.0;
+            final double farDistance = 100.0;
+            final float minScale = 0.4f;
+            final float maxScale = 1.0f;
             float scale;
             if (distance <= nearDistance) {
                 scale = maxScale;
             } else if (distance >= farDistance) {
                 scale = minScale;
             } else {
-                // near～far の間は線形補間で決定
                 scale = maxScale - (float)((distance - nearDistance) / (farDistance - nearDistance)) * (maxScale - minScale);
             }
 
-            // マトリクス変換を利用して、テクスチャ全体をスケーリング描画する
+            // Convert world coordinates to screen coordinates
+            Optional<ScreenCoordinate> optionalCoord = calculateScreenCoordinate(entry, viewProjMatrix, screenWidth, screenHeight);
+            if (!optionalCoord.isPresent()) continue;
+            ScreenCoordinate coord = optionalCoord.get();
+
+            // Scale and translate the pin image based on calculated coordinates
             context.getMatrices().push();
-            // 画面座標に合わせて平行移動
             context.getMatrices().translate(coord.x, coord.y, 0);
-            // 距離に基づいたスケール倍率を適用
             context.getMatrices().scale(scale, scale, 1.0F);
-            // テクスチャの下部中央が原点にくるようオフセット
-            int drawX = - pinWidth / 2;
-            int drawY = - pinHeight;
+
+            // Render the pin image texture (to be implemented according to texture rendering routines)
             context.drawTexture(
                 RenderLayer::getGuiTextured,
                 IconTexture.getIcon(entry.icon),
-                drawX, drawY,
+                -pinWidth / 2, -pinHeight / 2,
                 0.0F, 0.0F,
-                pinWidth, pinHeight, // 常に元のテクスチャ全体を描画
+                pinWidth, pinHeight,
                 pinWidth, pinHeight,
                 tintColor
             );
             context.getMatrices().pop();
 
-            // インジケーター下に距離テキストを表示する
+            // Render distance text
             String distanceText = String.format("%.1f", distance);
             int textColor = 0xAAFFFFFF; // 半透明の白色
             int distanceTextWidth = client.textRenderer.getWidth(distanceText);
             context.drawText(client.textRenderer, distanceText, coord.x - distanceTextWidth / 2, coord.y + 8, textColor, false);
 
-            // 距離テキストの下に description を表示する
+            // Render description text
             String descriptionText = entry.description;
             int descriptionTextWidth = client.textRenderer.getWidth(descriptionText);
             context.drawText(client.textRenderer, descriptionText, coord.x - descriptionTextWidth / 2, coord.y + 20, textColor, false);
@@ -137,7 +133,10 @@ public final class IndicatorRenderer implements HudRenderCallback {
     }
 
     /**
-     * カメラの位置と回転情報からビュー行列を生成する
+     * Computes the view matrix from the camera's position and rotation.
+     *
+     * @param camera The camera containing position and rotation info.
+     * @return The computed view matrix.
      */
     private static Matrix4f computeViewMatrix(Camera camera) {
         Vec3d camPos = camera.getPos();
@@ -150,13 +149,42 @@ public final class IndicatorRenderer implements HudRenderCallback {
     }
 
     /**
-     * スクリーン座標を計算する
-     * カメラの背後にある場合は空を返す
+     * Clamps the given value within the range [min, max].
+     *
+     * @param value The input value.
+     * @param min The minimum allowed value.
+     * @param max The maximum allowed value.
+     * @return The clamped value.
+     */
+    private static int clamp(int value, int min, int max) {
+        return Math.max(min, Math.min(value, max));
+    }
+
+    /**
+     * A helper class to hold screen coordinate data.
+     */
+    private static class ScreenCoordinate {
+        final int x, y;
+        ScreenCoordinate(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+    }
+
+    /**
+     * Converts a world coordinate from a pinned entry into screen coordinates.
+     * Returns an empty Optional if the coordinate is not visible (e.g. behind the camera).
+     *
+     * @param entry The coordinate entry.
+     * @param viewProjMatrix The combined view-projection matrix.
+     * @param screenWidth Screen width.
+     * @param screenHeight Screen height.
+     * @return An Optional containing the screen coordinate if visible.
      */
     private static Optional<ScreenCoordinate> calculateScreenCoordinate(Coordinates entry, Matrix4f viewProjMatrix, int screenWidth, int screenHeight) {
-        float worldX = (float) (Math.floor(entry.x) + 0.5);
-        float worldY = (float) (Math.floor(entry.y) + 0.5);
-        float worldZ = (float) (Math.floor(entry.z) + 0.5);
+        float worldX = (float)(Math.floor(entry.x) + 0.5);
+        float worldY = (float)(Math.floor(entry.y) + 0.5);
+        float worldZ = (float)(Math.floor(entry.z) + 0.5);
 
         org.joml.Vector4f pos = new org.joml.Vector4f(worldX, worldY, worldZ, 1.0f);
         viewProjMatrix.transform(pos);
@@ -165,28 +193,9 @@ public final class IndicatorRenderer implements HudRenderCallback {
         float ndcX = pos.x / pos.w;
         float ndcY = pos.y / pos.w;
 
-        int indicatorX = clamp((int) ((ndcX + 1.0f) * 0.5f * screenWidth), 0, screenWidth);
-        int indicatorY = clamp((int) ((1.0f - ndcY) * 0.5f * screenHeight), 0, screenHeight);
+        int indicatorX = clamp((int)((ndcX + 1.0f) * 0.5f * screenWidth), 0, screenWidth);
+        int indicatorY = clamp((int)((1.0f - ndcY) * 0.5f * screenHeight), 0, screenHeight);
 
         return Optional.of(new ScreenCoordinate(indicatorX, indicatorY));
     }
-
-    /**
-     * 値を指定の範囲内にクランプする
-     */
-    private static int clamp(int value, int min, int max) {
-        return Math.max(min, Math.min(value, max));
-    }
-
-    /**
-     * スクリーン座標を保持する簡易クラス
-     */
-    private static class ScreenCoordinate {
-        final int x, y;
-
-        ScreenCoordinate(int x, int y) {
-            this.x = x;
-            this.y = y;
-        }
-    }
-} 
+}

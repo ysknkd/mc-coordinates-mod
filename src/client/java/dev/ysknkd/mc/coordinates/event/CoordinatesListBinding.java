@@ -15,18 +15,17 @@ import net.minecraft.client.util.InputUtil;
 
 public class CoordinatesListBinding {
 
-    // 保存キー（V キー）
-    private static final KeyBinding SHOW_COORDINATES_LIST_KEY = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-            "key.mc-coordinates.show_coordinates_list",
-            InputUtil.Type.KEYSYM,
-            GLFW.GLFW_KEY_B,
-            "category.mc-coordinates"
-    ));
+    // Key binding for displaying the coordinates list (B key)
+    private static final KeyBinding SHOW_COORDINATES_LIST_KEY = KeyBindingHelper.registerKeyBinding(
+            new KeyBinding("key.mc-coordinates.show_coordinates_list",
+                           InputUtil.Type.KEYSYM,
+                           GLFW.GLFW_KEY_B,
+                           "category.mc-coordinates"));
     
     private static boolean showListOnCommand = false;
     
     /**
-     * コマンド登録： "/ml" コマンドで CoordinatesListScreen の表示をトグル
+     * Registers the "/ml" command to toggle the display of the CoordinatesListScreen.
      */
     public static void register() {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
@@ -34,7 +33,7 @@ public class CoordinatesListBinding {
                     .executes(context -> {
                         MinecraftClient client = MinecraftClient.getInstance();
                         client.execute(() -> {
-                            // チャット等を閉じて画面遷移可能にする
+                            // Close any open chat or overlays to allow screen transition
                             client.setScreen(null);
                             showListOnCommand = true;
                         });
@@ -42,7 +41,7 @@ public class CoordinatesListBinding {
                     }));
         });
 
-        // コマンド実行後に次の tick で CoordinatesListScreen 表示
+        // On the next tick, if showListOnCommand is true and the player exists with no open screen, show the CoordinatesListScreen.
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (showListOnCommand && client.player != null && client.currentScreen == null) {
                 showListOnCommand = false;
@@ -50,7 +49,7 @@ public class CoordinatesListBinding {
             }
         });
 
-        // キー押下時の処理
+        // Register key binding listener to open the coordinates list screen
         KeyBindingEventHandler.registerListener(SHOW_COORDINATES_LIST_KEY, client -> {
             if (client.player != null && client.currentScreen == null) {
                 client.setScreen(new CoordinatesListScreen());
