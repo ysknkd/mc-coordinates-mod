@@ -25,13 +25,6 @@
 			"dev.ysknkd.mc.coordinates.CoordinatesServer"
 		]
 	},
-	"mixins": [
-		"mc-coordinates.mixins.json",
-		{
-			"config": "mc-coordinates.client.mixins.json",
-			"environment": "client"
-		}
-	],
 	"depends": {
 		"fabricloader": ">=0.16.10",
 		"minecraft": "~1.21.4",
