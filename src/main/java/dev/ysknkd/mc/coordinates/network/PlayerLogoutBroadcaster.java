@@ -6,29 +6,27 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 /**
- * プレイヤーがログアウトした際、その情報を他のクライアントへブロードキャストするクラスです。
+ * Broadcasts a player's logout information to other clients when the player logs out.
  */
 public class PlayerLogoutBroadcaster {
 
     public static void register() {
-        // ログアウトイベントを登録
+        // Register the logout event
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             ServerPlayerEntity disconnectedPlayer = handler.getPlayer();
             broadcastLogout(disconnectedPlayer);
         });
 
-        // ログアウトペイロードの型登録（サーバーからクライアントへの送信用）
         PayloadTypeRegistry.playS2C().register(PlayerLogoutPayload.ID, PlayerLogoutPayload.CODEC);
     }
 
     /**
-     * 接続中の各プレイヤーへ、ログアウトしたプレイヤーのUUIDを通知します。
+     * Notifies all connected players (except the disconnected player) of the logout by sending their UUID.
      *
-     * @param disconnectedPlayer ログアウトしたプレイヤー
+     * @param disconnectedPlayer The player who has logged out.
      */
     private static void broadcastLogout(ServerPlayerEntity disconnectedPlayer) {
         PlayerLogoutPayload payload = new PlayerLogoutPayload(disconnectedPlayer.getUuid());
-        // 接続中の各プレイヤー（ログアウトしたプレイヤー自身を除く）に送信
         disconnectedPlayer.getServer().getPlayerManager().getPlayerList().forEach(player -> {
             if (!player.getUuid().equals(disconnectedPlayer.getUuid())) {
                 ServerPlayNetworking.send(player, payload);

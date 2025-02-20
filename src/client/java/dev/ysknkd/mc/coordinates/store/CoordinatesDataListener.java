@@ -1,13 +1,13 @@
 package dev.ysknkd.mc.coordinates.store;
 
 /**
- * 位置情報の更新時に通知を受け取るリスナー用インターフェースです。
+ * Interface for listeners that are notified when coordinate data is updated.
  */
 public interface CoordinatesDataListener {
     /**
-     * 新たなエントリが追加された際に呼ばれます。
+     * Called when a new coordinate entry is added.
      *
-     * @param entry 追加された位置情報エントリ
+     * @param entry The coordinate entry that was added.
      */
     void onEntryAdded(Coordinates entry);
 } 

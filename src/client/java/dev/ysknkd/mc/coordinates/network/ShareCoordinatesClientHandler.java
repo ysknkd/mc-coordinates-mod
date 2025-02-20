@@ -24,7 +24,7 @@ public class ShareCoordinatesClientHandler {
                 try {
                     CoordinatesDataManager.addOrUpdateEntry(new Coordinates(payload.uuid(), payload.x(), payload.y(), payload.z(), payload.description(), payload.world(), payload.pinned(), payload.icon()));
                 } catch (Exception e) {
-                    LOGGER.error("ペイロードの受信・デコードに失敗しました", e);
+                    LOGGER.error("Failed to receive/decode payload", e);
                 }
             });
         });
@@ -33,7 +33,7 @@ public class ShareCoordinatesClientHandler {
     public static void send(Coordinates entry) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player != null) {
-            // 送信者は現在のプレイヤーの UUID を利用
+            // Use the current player's UUID for the sender
             ShareCoordinatesPayload payload = new ShareCoordinatesPayload(
                     client.player.getUuid(),
                     entry.uuid,

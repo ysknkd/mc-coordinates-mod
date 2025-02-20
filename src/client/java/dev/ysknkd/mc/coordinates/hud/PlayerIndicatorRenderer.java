@@ -1,4 +1,4 @@
- package dev.ysknkd.mc.coordinates.hud;
+package dev.ysknkd.mc.coordinates.hud;
 
 import dev.ysknkd.mc.coordinates.store.PlayerCoordinatesCache;
 import dev.ysknkd.mc.coordinates.store.PlayerCoordinates;
@@ -17,8 +17,7 @@ import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 /**
- * クライアント上で、自分以外のプレイヤーの位置情報から
- * アイコン（スキン）、カメラまでの距離、名前をHUD上に描画するクラスです。
+ * Renders each player's icon, distance from the camera, and their name on the HUD based on their position.
  */
 public final class PlayerIndicatorRenderer implements HudRenderCallback {
 
@@ -30,6 +29,7 @@ public final class PlayerIndicatorRenderer implements HudRenderCallback {
     public void onHudRender(DrawContext context, RenderTickCounter tickCounter) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.world == null) return;
+        
         int screenWidth = context.getScaledWindowWidth();
         int screenHeight = context.getScaledWindowHeight();
         SimpleOption<Integer> fovOption = client.options.getFov();
@@ -38,7 +38,7 @@ public final class PlayerIndicatorRenderer implements HudRenderCallback {
         Matrix4f viewMatrix = computeViewMatrix(camera);
         Matrix4f viewProjMatrix = projectionMatrix.mul(viewMatrix, new Matrix4f());
 
-        // アルファ値のフェードイン・アウト用のアニメーション（周期1秒）
+        // Animation for alpha fade in/out (1-second cycle)
         long time = System.currentTimeMillis();
         final float period = 1000.0F;
         float t = (time % (long) period) / period;
@@ -51,21 +51,21 @@ public final class PlayerIndicatorRenderer implements HudRenderCallback {
         int tintColor = (alphaInt << 24) | 0xFFFFFF;
 
         for (PlayerCoordinates playerEntity : PlayerCoordinatesCache.getCoordinatesList()) {
-            // ワールド座標をブロック中央として扱う
+            // Treat world coordinates as the center of the block
             float worldX = (float)(Math.floor(playerEntity.x) + 0.5);
             float worldY = (float)(Math.floor(playerEntity.y) + 0.5);
             float worldZ = (float)(Math.floor(playerEntity.z) + 0.5);
 
-            // カメラからの距離計算
+            // Calculate distance from the camera
             Vec3d camPos = camera.getPos();
             double distance = camPos.distanceTo(new Vec3d(worldX, worldY, worldZ));
 
-            // 距離が10ブロック未満の場合はインジケーターを表示しない
+            // Do not display the indicator if the distance is less than 10 blocks
             if (distance < 10.0) {
                 continue;
             }
 
-            // 距離に応じたスケール（近いほど大きく、遠いほど小さく）
+            // Determine scale based on distance (closer -> larger, farther -> smaller)
             final double nearDistance = 10.0;
             final double farDistance = 100.0;
             final float minScale = 0.4f, maxScale = 1.0f;
@@ -78,7 +78,7 @@ public final class PlayerIndicatorRenderer implements HudRenderCallback {
                 scale = maxScale - (float)((distance - nearDistance) / (farDistance - nearDistance)) * (maxScale - minScale);
             }
 
-            // ワールド座標からスクリーン座標へ変換
+            // Convert world coordinates to screen coordinates
             Vector4f posVec = new Vector4f(worldX, worldY, worldZ, 1.0f);
             viewProjMatrix.transform(posVec);
             if (posVec.w <= 0.0f) continue;
@@ -87,17 +87,18 @@ public final class PlayerIndicatorRenderer implements HudRenderCallback {
             int screenX = clamp((int)((ndcX + 1.0f) * 0.5f * screenWidth), 0, screenWidth);
             int screenY = clamp((int)((1.0f - ndcY) * 0.5f * screenHeight), 0, screenHeight);
 
+            // Render the player's icon (skin texture)
             context.getMatrices().push();
             context.getMatrices().translate(screenX, screenY, 0);
             context.getMatrices().scale(scale, scale, 1.0F);
 
-            // プレイヤーの GameProfile からアイコン（スキンテクスチャ）を取得
+            // Retrieve the player's icon (skin) from their GameProfile
             Identifier texture = IconTexture.getPlayerIcon(playerEntity.uuid, playerEntity.name);
 
-            // アイコン描画（アイコンサイズは16×16ピクセル）
+            // Draw the icon (icon size is 16x16 pixels)
             final int iconSize = 16;
             int drawX = -iconSize / 2;
-            int drawY = -iconSize; // アイコンの下部中央を原点に調整
+            int drawY = -iconSize; // Adjust to align the bottom center of the icon with the origin
             context.drawTexture(
                 RenderLayer::getGuiTextured,
                 texture,
@@ -109,13 +110,13 @@ public final class PlayerIndicatorRenderer implements HudRenderCallback {
             );
             context.getMatrices().pop();
 
-            // 距離テキスト描画
+            // Render distance text
             String distanceText = String.format("%.1f", distance);
-            int textColor = 0xAAFFFFFF; // 半透明の白
+            int textColor = 0xAAFFFFFF; // Semi-transparent white
             int distanceTextWidth = client.textRenderer.getWidth(distanceText);
             context.drawText(client.textRenderer, distanceText, screenX - distanceTextWidth / 2, screenY + 8, textColor, false);
 
-            // プレイヤー名前も描画
+            // Render the player's name
             String name = playerEntity.name;
             int nameWidth = client.textRenderer.getWidth(name);
             context.drawText(client.textRenderer, name, screenX - nameWidth / 2, screenY + 20, textColor, false);
@@ -123,7 +124,10 @@ public final class PlayerIndicatorRenderer implements HudRenderCallback {
     }
 
     /**
-     * カメラの位置と回転情報からビュー行列を生成します。
+     * Computes the view matrix from the camera's position and rotation.
+     *
+     * @param camera The camera object containing position and rotation.
+     * @return The computed view matrix.
      */
     private static Matrix4f computeViewMatrix(Camera camera) {
         Vec3d camPos = camera.getPos();
@@ -136,7 +140,12 @@ public final class PlayerIndicatorRenderer implements HudRenderCallback {
     }
 
     /**
-     * 値を指定範囲内にクランプします。
+     * Clamps the given value within the specified range.
+     *
+     * @param value The value to clamp.
+     * @param min The minimum allowed value.
+     * @param max The maximum allowed value.
+     * @return The clamped value.
      */
     private static int clamp(int value, int min, int max) {
         return Math.max(min, Math.min(value, max));

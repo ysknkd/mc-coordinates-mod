@@ -11,7 +11,6 @@ import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.text.Text;
 
 public class CoordinatesRenderer implements HudRenderCallback {
-    // 色定数 (ARGB形式に変更)
     private static final int COLOR_WHITE = 0xDDFFFFFF;
 
     public static void register() {
@@ -37,7 +36,6 @@ public class CoordinatesRenderer implements HudRenderCallback {
         if (client == null || client.player == null) {
             return;
         }
-        // 現在座標の描画
         renderCurrentCoordinates(context, client);
     }
 

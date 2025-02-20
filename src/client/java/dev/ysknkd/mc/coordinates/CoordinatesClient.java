@@ -34,7 +34,7 @@ public class CoordinatesClient implements ClientModInitializer {
         PlayerCoordinatesHandler.register();
         PlayerLogoutClientHandler.register();
 
-        // ログイン時：必要に応じて個別のストレージ設定があれば実施
+        // At login: clear and load storage settings as necessary
         net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             CoordinatesDataManager.clear();
             CoordinatesDataManager.load(Util.createWorldIdentifier(client));
@@ -42,13 +42,13 @@ public class CoordinatesClient implements ClientModInitializer {
             Config.load(Util.createWorldIdentifier(client));
         });
 
-        // ログアウト時：ストレージにデータを保存
+        // At logout: save data to storage
         net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             CoordinatesDataManager.save();
             Config.save();
         });
 
-        // クライアント終了時にデータ保存
+        // On client shutdown: save data
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
             CoordinatesDataManager.save();
             Config.save();

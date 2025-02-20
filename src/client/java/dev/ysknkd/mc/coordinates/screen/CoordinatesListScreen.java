@@ -20,20 +20,20 @@ import java.util.List;
 import java.util.ArrayList;
 
 /**
- * 保存データ一覧画面。
- * ページャー機能を用いて、エントリの位置情報と説明文を表示します。
- * 画面下部の固定位置に、ページ数テキストの両側に "<" と ">" のボタンを配置します。
+ * Screen that displays the list of saved coordinate entries.
+ * Uses a pager to display location information and descriptions.
+ * Fixed-position buttons ("<" and ">") for pagination are placed on either side of the page number text at the bottom.
  */
 @Environment(EnvType.CLIENT)
 public class CoordinatesListScreen extends Screen {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CoordinatesListScreen.class);
-    // 一度に表示するエントリ数
+    // Number of entries displayed per page
     private static final int ENTRIES_PER_PAGE = 6;
-    // 現在のページ番号 (0オリジン)
+    // Current page number (zero-indexed)
     private int currentPage = 0;
 
-    // 表示件数／ページなどの定数
+    // Layout constants
     private static final int ICON_SIZE = 20;
     private static final int ICON_GAP = 4;
     private static final int LEFT_MARGIN = 10;
@@ -45,13 +45,12 @@ public class CoordinatesListScreen extends Screen {
     private static final int PAGER_BUTTON_WIDTH = 20;
     private static final int PAGER_BUTTON_HEIGHT = 20;
     private static final int PAGER_GAP = 6;
-    private static final int PAGINATION_AREA_OFFSET = 60; // 画面下部からのオフセット
+    private static final int PAGINATION_AREA_OFFSET = 60;
 
     public CoordinatesListScreen() {
         super(Text.translatable("modid.coordinates_list.title"));
     }
 
-    // ページ番号を指定するコンストラクタ
     public CoordinatesListScreen(int currentPage) {
         this();
         this.currentPage = currentPage;
@@ -63,16 +62,12 @@ public class CoordinatesListScreen extends Screen {
         int totalEntries = entries.size();
         int totalPages = (totalEntries + ENTRIES_PER_PAGE - 1) / ENTRIES_PER_PAGE;
 
-        // 各ウィジェット生成処理を分割
-        addSettingsButton(); // 設定画面への遷移ボタンを追加
+        addSettingsButton();
         addCloseButton();
         addPaginationButtons(totalPages);
         addWidgets(entries, currentPage * ENTRIES_PER_PAGE, Math.min((currentPage + 1) * ENTRIES_PER_PAGE, totalEntries));
     }
 
-    /**
-     * 画面上部右側に設定画面へ遷移するボタンを追加する。（歯車アイコンを表示）
-     */
     private void addSettingsButton() {
         int x = this.width - ICON_SIZE - LEFT_MARGIN;
         int y = 10;
@@ -84,9 +79,6 @@ public class CoordinatesListScreen extends Screen {
         );
     }
 
-    /**
-     * 下部中央に「閉じる」ボタンを追加する。
-     */
     private void addCloseButton() {
         int x = this.width / 2 - (CLOSE_BUTTON_WIDTH / 2);
         int y = this.height - 30;
@@ -98,9 +90,9 @@ public class CoordinatesListScreen extends Screen {
     }
 
     /**
-     * ページャー用の左右ボタンを追加する。
+     * Add left and right buttons for pager.
      *
-     * @param totalPages 総ページ数
+     * @param totalPages Total number of pages
      */
     private void addPaginationButtons(int totalPages) {
         int paginationAreaY = this.height - PAGINATION_AREA_OFFSET;
@@ -108,7 +100,7 @@ public class CoordinatesListScreen extends Screen {
         int pageInfoWidth = this.textRenderer.getWidth(pageInfo);
         int centerX = this.width / 2;
 
-        // 左側の "<" ボタン（先頭ページでなければ）
+        // Left side "<" button (if not first page)
         if (currentPage > 0) {
             int leftX = centerX - pageInfoWidth / 2 - PAGER_BUTTON_WIDTH - PAGER_GAP;
             this.addDrawableChild(
@@ -119,7 +111,7 @@ public class CoordinatesListScreen extends Screen {
             );
         }
 
-        // 右側の ">" ボタン（最終ページでなければ）
+        // Right side ">" button (if not last page)
         if (currentPage < totalPages - 1) {
             int rightX = centerX + pageInfoWidth / 2 + PAGER_GAP;
             this.addDrawableChild(
@@ -132,11 +124,11 @@ public class CoordinatesListScreen extends Screen {
     }
 
     /**
-     * 指定された範囲のエントリについて、各種操作ウィジェットを追加する。
+     * Add various operation widgets for specified range of entries.
      *
-     * @param entries    全エントリリスト
-     * @param startIndex 表示開始インデックス
-     * @param endIndex   表示終了インデックス（非包括）
+     * @param entries     All entry list
+     * @param startIndex  Display start index
+     * @param endIndex    Display end index (non-inclusive)
      */
     private void addWidgets(List<Coordinates> entries, int startIndex, int endIndex) {
         for (int i = startIndex; i < endIndex; i++) {
@@ -144,7 +136,7 @@ public class CoordinatesListScreen extends Screen {
             int rowY = TOP_MARGIN + displayIndex * ROW_HEIGHT;
             Coordinates entry = entries.get(i);
 
-            // お気に入りトグルボタン（entry.icon を使用）
+            // Favorite toggle button (use entry.icon)
             this.addDrawableChild(new ToggleIconButton(
                 LEFT_MARGIN,
                 rowY,
@@ -158,7 +150,7 @@ public class CoordinatesListScreen extends Screen {
                 entry.favorite
             ));
 
-            // ピン留めトグルボタン
+            // Pin toggle button
             int pinX = LEFT_MARGIN + ICON_SIZE + ICON_GAP;
             this.addDrawableChild(new ToggleIconButton(
                 pinX,
@@ -169,7 +161,7 @@ public class CoordinatesListScreen extends Screen {
                 button -> {
                     entry.pinned = !entry.pinned;
                     if (entry.share) {
-                        // 有効な場合は共有状態として、常に共有する
+                        // If valid, treat as shared state and always share
                         ShareCoordinatesClientHandler.send(entry);
                     }
                     MinecraftClient.getInstance().setScreen(new CoordinatesListScreen(currentPage));
@@ -177,7 +169,7 @@ public class CoordinatesListScreen extends Screen {
                 entry.pinned
             ));
 
-            // シェアボタンをトグル化
+            // Share button to toggle
             int shareX = LEFT_MARGIN + (ICON_SIZE + ICON_GAP) * 2;
             this.addDrawableChild(new ToggleIconButton(
                 shareX,
@@ -188,7 +180,7 @@ public class CoordinatesListScreen extends Screen {
                 button -> {
                     entry.share = !entry.share;
                     if (entry.share) {
-                        // 有効な場合は共有状態として、常に共有する
+                        // If valid, treat as shared state and always share
                         ShareCoordinatesClientHandler.send(entry);
                     }
                     MinecraftClient.getInstance().setScreen(new CoordinatesListScreen(currentPage));
@@ -196,7 +188,7 @@ public class CoordinatesListScreen extends Screen {
                 entry.share
             ));
 
-            // 「説明変更」ボタン
+            // "Edit Description" button
             int descX = this.width - ICON_SIZE - LEFT_MARGIN - DESC_BUTTON_WIDTH - ICON_GAP;
             this.addDrawableChild(
                 ButtonWidget.builder(Text.translatable("modid.button.edit_description"), button ->
@@ -205,12 +197,12 @@ public class CoordinatesListScreen extends Screen {
                     .build()
             );
 
-            // 削除ボタン（ゴミ箱アイコン "🗑"）
+            // Delete button (Trash can icon "🗑")
             int deleteX = this.width - ICON_SIZE - LEFT_MARGIN;
             this.addDrawableChild(
                 ButtonWidget.builder(Text.literal("🗑"), button -> {
                     if (entry.favorite) {
-                        LOGGER.info("お気に入りのエントリは削除できません");
+                        LOGGER.info("Cannot delete favorite entry");
                         return;
                     }
                     CoordinatesDataManager.removeEntry(entry);
@@ -232,14 +224,14 @@ public class CoordinatesListScreen extends Screen {
     }
 
     /**
-     * 画面上部にタイトルを描画する。
+     * Render title at top.
      */
     private void renderTitle(DrawContext context) {
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 10, 0xFFFFFF);
     }
 
     /**
-     * 現在のページに該当するエントリのテキスト情報を描画する。
+     * Render text information for entries corresponding to current page.
      */
     private void renderEntriesText(DrawContext context) {
         List<Coordinates> entries = new ArrayList<>(CoordinatesDataManager.getEntries());
@@ -265,7 +257,7 @@ public class CoordinatesListScreen extends Screen {
     }
 
     /**
-     * ページャー情報を画面下部に描画する。
+     * Render pagination information at bottom.
      */
     private void renderPaginationText(DrawContext context) {
         int paginationAreaY = this.height - PAGINATION_AREA_OFFSET;
@@ -282,7 +274,6 @@ public class CoordinatesListScreen extends Screen {
         return false;
     }
 
-    // 内部クラス：トグル状態を保持するアイコンボタン
     private class ToggleIconButton extends ButtonWidget {
         private boolean toggled;
 
@@ -295,7 +286,7 @@ public class CoordinatesListScreen extends Screen {
         protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
             super.renderWidget(context, mouseX, mouseY, delta);
             if (!toggled) {
-                // トグルされていない場合、半透明オーバーレイを追加
+                // If not toggled, add a semi-transparent overlay.
                 context.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0x80000000);
             }
         }

@@ -52,11 +52,10 @@ public record ShareCoordinatesPayload(
     };
 
     /**
-     * ペイロードのエンコード処理
-     * 書き込み順序に注意してください。
+     * Encodes the payload.
      *
-     * @param buf 書き込み先の RegistryByteBuf
-     * @param payload エンコードする ShareCoordinatesPayload
+     * @param buf The RegistryByteBuf to write to.
+     * @param payload The ShareCoordinatesPayload to encode.
      */
     public static void encode(RegistryByteBuf buf, ShareCoordinatesPayload payload) {
         buf.writeUuid(payload.sender);
@@ -71,11 +70,11 @@ public record ShareCoordinatesPayload(
     }
 
     /**
-     * ペイロードのデコード処理
-     * エンコード時と同じ順序で読み出します。
+     * Decodes the payload.
+     * Reads in the same order as encoding.
      *
-     * @param buf 読み込み元の RegistryByteBuf
-     * @return 読み出した ShareCoordinatesPayload インスタンス
+     * @param buf The RegistryByteBuf to read from.
+     * @return The decoded ShareCoordinatesPayload instance.
      */
     public static ShareCoordinatesPayload decode(RegistryByteBuf buf) {
         UUID sender = buf.readUuid();

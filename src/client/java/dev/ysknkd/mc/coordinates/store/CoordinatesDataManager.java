@@ -22,58 +22,50 @@ import java.util.LinkedHashMap;
 import java.util.Comparator;
 
 /**
- * 位置情報のデータ管理と永続化を行うユーティリティクラスです。<br>
- * 以下の責務を持ちます。
- * <ul>
- *   <li>位置情報エントリの追加、削除・更新</li>
- *   <li>登録済みエントリの取得（全件／ピン留めのみ／ワールド毎）</li>
- *   <li>ファイルへの JSON 形式での保存・ファイルからの読み込み</li>
- *   <li>エントリ追加時のリスナー通知</li>
- * </ul>
- * このクラスはインスタンス化できないユーティリティクラスです。
+ * Utility class for managing and persisting coordinate data.
  */
 public final class CoordinatesDataManager {
 
     // ----------------------------------------------------------------
-    // フィールド
+    // Fields
     // ----------------------------------------------------------------
     private static final Logger LOGGER = LoggerFactory.getLogger(CoordinatesDataManager.class);
 
-    // UUID をキーにエントリを管理する Map
+    // Map to manage entries keyed by UUID
     private static final Map<UUID, Coordinates> entries = new LinkedHashMap<>();
 
-    // gson インスタンス
+    // Gson instance
     private static final Gson gson = new Gson();
     private static final List<CoordinatesDataListener> listeners = new ArrayList<>();
 
-    // 現在の worldId（load 時に更新される）
+    // Current worldId (updated during load)
     private static String currentWorldId = "unknown";
 
     // ----------------------------------------------------------------
-    // コンストラクタ（インスタンス化防止）
+    // Constructor (Prevent instantiation)
     // ----------------------------------------------------------------
     private CoordinatesDataManager() {}
 
     // ----------------------------------------------------------------
-    // ファイル入出力関連
+    // File I/O related
     // ----------------------------------------------------------------
 
     /**
-     * 指定された worldId に基づいたデータファイルのパスを取得します。<br>
-     * 例: "config/mc-coordinates/{worldId}/data.json"
+     * Gets the path to the data file based on the given worldId.
+     * Example: "config/mc-coordinates/{worldId}/data.json"
      *
-     * @param worldId 対象のワールドID
-     * @return データファイルのパス
+     * @param worldId Target world ID
+     * @return Path to the data file
      */
     private static Path getDataFilePath(String worldId) {
         return Paths.get("config", "mc-coordinates", worldId, "data.json");
     }
 
     /**
-     * 永続化されたファイルから位置情報データを読み込み、内部マップに反映します。<br>
-     * ファイルが存在しない場合は何も行いません。
+     * Loads coordinate data from a persisted file and reflects it in the internal map.
+     * If the file does not exist, it does nothing.
      *
-     * @param worldId 読み込み対象のワールドID
+     * @param worldId Target world ID to load
      */
     public static void load(String worldId) {
         currentWorldId = worldId;
@@ -92,13 +84,13 @@ public final class CoordinatesDataManager {
                 );
             }
         } catch (IOException e) {
-            LOGGER.error("CoordinatesDataManager#load エラー", e);
+            LOGGER.error("CoordinatesDataManager#load error", e);
         }
     }
 
     /**
-     * 内部マップの内容をJSON形式でディスクに保存します。<br>
-     * 保存先ディレクトリが存在しない場合は自動で作成します。
+     * Saves the content of the internal map to a JSON file on disk.
+     * If the save destination directory does not exist, it creates it automatically.
      */
     public static void save() {
         Path dataFile = getDataFilePath(currentWorldId);
@@ -108,19 +100,20 @@ public final class CoordinatesDataManager {
                 gson.toJson(entries.values(), writer);
             }
         } catch (IOException e) {
-            LOGGER.error("CoordinatesDataManager#save エラー", e);
+            LOGGER.error("CoordinatesDataManager#save error", e);
         }
     }
 
     // ----------------------------------------------------------------
-    // エントリ管理（追加・更新・削除・取得）
+    // Entry management (Add, Update, Remove, Get)
     // ----------------------------------------------------------------
 
     /**
-     * 新規追加または、既存のエントリ（同一 UUID）の状態を更新します。<br>
-     * 同じ UUID のエントリが存在する場合はそのフィールドを上書き更新し、存在しなければ新規登録します。
+     * Adds a new entry or updates an existing entry (same UUID).<br>
+     * If an entry with the same UUID already exists, its fields are overwritten and updated,
+     * or a new entry is registered if it does not exist.
      *
-     * @param newEntry 追加または更新対象の Coordinates
+     * @param newEntry Entry to add or update
      */
     public static void addOrUpdateEntry(Coordinates newEntry) {
         entries.compute(newEntry.uuid, (key, existing) -> {
@@ -140,28 +133,28 @@ public final class CoordinatesDataManager {
     }
 
     /**
-     * 指定されたエントリをメモリ上から削除します。
+     * Removes an entry from memory.
      *
-     * @param entry 削除対象の Coordinates
+     * @param entry Entry to remove
      */
     public static void removeEntry(Coordinates entry) {
         entries.remove(entry.uuid);
     }
 
     /**
-     * 指定された UUID に対応するエントリを返します。
+     * Returns the entry corresponding to the specified UUID.
      *
-     * @param uuid 検索するエントリの UUID
-     * @return 該当するエントリがあれば返します。なければ null です。
+     * @param uuid UUID of the entry to search for
+     * @return The corresponding entry if it exists, null if it does not
      */
     public static Coordinates getEntry(UUID uuid) {
         return entries.get(uuid);
     }
 
     /**
-     * 管理中のエントリを保存時刻の新しい順（降順）にソートしたリストとして返します。
+     * Returns a list of entries sorted by their saved time in descending order.
      *
-     * @return 保存時刻降順の Coordinates リスト
+     * @return List of Coordinates sorted by saved time descending
      */
     public static List<Coordinates> getEntries() {
         return entries.values().stream()
@@ -170,27 +163,27 @@ public final class CoordinatesDataManager {
     }
 
     /**
-     * メモリ上の位置情報エントリを全てクリアします。
+     * Clears all coordinate entries from memory.
      */
     public static void clear() {
         entries.clear();
     }
 
-    // ピン留めエントリに関する処理
+    // Pinned entry related processing
 
     /**
-     * ピン留めされたエントリが存在するかどうかを返します。
+     * Returns whether there are pinned entries.
      *
-     * @return ピン留めエントリが存在すれば true、なければ false
+     * @return true if pinned entries exist, false if they do not
      */
     public static boolean hasPinnedEntries() {
         return entries.values().stream().anyMatch(Coordinates::isPinned);
     }
 
     /**
-     * ピン留めされたエントリのみを抽出し、不変リストとして返します。
+     * Returns pinned entries only as an immutable list.
      *
-     * @return ピン留めエントリの不変リスト
+     * @return Immutable list of pinned entries
      */
     public static List<Coordinates> getPinnedEntries() {
         return Collections.unmodifiableList(
@@ -201,10 +194,10 @@ public final class CoordinatesDataManager {
     }
 
     /**
-     * 指定されたワールドでピン留めされたエントリが存在するかどうかを返します。
+     * Returns whether there are pinned entries in the specified world.
      *
-     * @param world 対象のワールド名
-     * @return ピン留めエントリがあれば true、なければ false
+     * @param world Target world name
+     * @return true if pinned entries exist, false if they do not
      */
     public static boolean hasPinnedEntriesByWorld(String world) {
         return entries.values().stream()
@@ -212,10 +205,10 @@ public final class CoordinatesDataManager {
     }
 
     /**
-     * 指定されたワールドのピン留めされたエントリのみを抽出し、不変リストとして返します。
+     * Returns pinned entries only in the specified world as an immutable list.
      *
-     * @param world 対象のワールド名（例: "overworld"）
-     * @return 指定ワールドのピン留めエントリの不変リスト
+     * @param world Target world name (e.g., "overworld")
+     * @return Immutable list of pinned entries in the specified world
      */
     public static List<Coordinates> getPinnedEntriesByWorld(String world) {
         return Collections.unmodifiableList(
@@ -227,13 +220,13 @@ public final class CoordinatesDataManager {
     }
 
     // ----------------------------------------------------------------
-    // リスナー管理
+    // Listener management
     // ----------------------------------------------------------------
 
     /**
-     * エントリが追加された際に、全ての登録済みリスナーへ通知します。
+     * Notifies all registered listeners when a new entry is added.
      *
-     * @param entry 追加されたエントリ
+     * @param entry The added coordinate entry.
      */
     private static void notifyEntryAdded(Coordinates entry) {
         synchronized (listeners) {
@@ -241,16 +234,16 @@ public final class CoordinatesDataManager {
                 try {
                     listener.onEntryAdded(entry);
                 } catch (Exception e) {
-                    LOGGER.error("CoordinatesDataManager#notifyEntryAdded エラー", e);
+                    LOGGER.error("Error in notifyEntryAdded", e);
                 }
             }
         }
     }
 
     /**
-     * リスナーを登録します。
+     * Registers a listener for coordinate data updates.
      *
-     * @param listener 登録対象の CoordinatesDataListener
+     * @param listener The listener to register.
      */
     public static void registerListener(CoordinatesDataListener listener) {
         synchronized (listeners) {
@@ -259,9 +252,9 @@ public final class CoordinatesDataManager {
     }
 
     /**
-     * 登録済みのリスナーを解除します。
+     * Unregisters a previously registered listener.
      *
-     * @param listener 解除対象の CoordinatesDataListener
+     * @param listener The listener to unregister.
      */
     public static void unregisterListener(CoordinatesDataListener listener) {
         synchronized (listeners) {

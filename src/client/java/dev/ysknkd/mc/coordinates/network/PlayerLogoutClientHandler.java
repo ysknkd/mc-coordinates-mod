@@ -7,13 +7,13 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.MinecraftClient;
 
 /**
- * クライアント側でログアウトペイロードを受信した際に、
- * プレイヤーの位置情報キャッシュから該当プレイヤーのデータを削除します。
+ * Client-side handler that removes the corresponding player's data from the cache
+ * when a logout payload is received.
  */
 public class PlayerLogoutClientHandler implements ClientPlayNetworking.PlayPayloadHandler<PlayerLogoutPayload> {
 
     public static void register() {
-        // ログアウトペイロードの型登録（クライアント側）
+        // Register the payload type for logout (for server-to-client communication)
         PayloadTypeRegistry.playS2C().register(PlayerLogoutPayload.ID, PlayerLogoutPayload.CODEC);
         ClientPlayNetworking.registerGlobalReceiver(PlayerLogoutPayload.ID, new PlayerLogoutClientHandler());
     }
@@ -22,7 +22,7 @@ public class PlayerLogoutClientHandler implements ClientPlayNetworking.PlayPaylo
     public void receive(PlayerLogoutPayload payload, Context context) {
         MinecraftClient client = context.client();
         client.execute(() -> {
-            // キャッシュからログアウトしたプレイヤーのデータを削除
+            // Remove the logged-out player's data from the cache
             PlayerCoordinatesCache.remove(payload.uuid());
         });
     }

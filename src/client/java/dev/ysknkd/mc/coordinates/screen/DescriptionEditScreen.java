@@ -12,7 +12,8 @@ import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.text.Text;
 
 /**
- * 説明変更用画面。対象の Coordinates の説明を編集し、保存またはキャンセルできます。
+ * Screen for editing the description.
+ * Allows editing the description of the target Coordinates entry and saving or canceling.
  */
 @Environment(EnvType.CLIENT)
 public class DescriptionEditScreen extends Screen {
@@ -34,21 +35,20 @@ public class DescriptionEditScreen extends Screen {
 
     @Override
     protected void init() {
-        // 中央にテキスト入力フィールドを配置
+        // Place the text input field in the center
         int textFieldWidth = 200;
         int textFieldHeight = 20;
         int centerX = this.width / 2;
         int centerY = this.height / 2;
         textField = new TextFieldWidget(this.textRenderer, centerX - textFieldWidth / 2, centerY - textFieldHeight / 2, textFieldWidth, textFieldHeight, Text.translatable("modid.description.label"));
         textField.setText(entry.description);
-        textField.setChangedListener(text -> {}); // 必要に応じてリスナーを追加
+        textField.setChangedListener(text -> {});
         this.addSelectableChild(textField);
         textField.setFocused(true);
 
-        // 「保存」ボタン
+        // "Save" button
         this.addDrawableChild(
             ButtonWidget.builder(Text.translatable("modid.button.save"), button -> {
-                // テキストフィールドの内容でエントリを更新し、一覧画面へ戻る
                 entry.description = textField.getText();
                 close();
             })
@@ -56,7 +56,7 @@ public class DescriptionEditScreen extends Screen {
             .build()
         );
 
-        // 「キャンセル」ボタン
+        // "Cancel" button
         this.addDrawableChild(
             ButtonWidget.builder(Text.translatable("modid.button.cancel"), button -> {
                 close();
@@ -68,14 +68,13 @@ public class DescriptionEditScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        // 背景描画
         this.renderBackground(context, mouseX, mouseY, delta);
-        // タイトル描画
+        // Draw the title
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 10, 0xFFFFFF);
 
         super.render(context, mouseX, mouseY, delta);
 
-        // テキストフィールド描画
+        // Render the text field
         textField.render(context, mouseX, mouseY, delta);
     }
 
@@ -84,7 +83,7 @@ public class DescriptionEditScreen extends Screen {
         return false;
     }
 
-    // キー入力をテキストフィールドへ転送
+    // Forward key input to the text field
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (textField.isFocused()) {
