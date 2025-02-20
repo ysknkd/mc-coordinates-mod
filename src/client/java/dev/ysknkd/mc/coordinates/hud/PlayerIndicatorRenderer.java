@@ -92,7 +92,7 @@ public final class PlayerIndicatorRenderer implements HudRenderCallback {
             context.getMatrices().scale(scale, scale, 1.0F);
 
             // プレイヤーの GameProfile からアイコン（スキンテクスチャ）を取得
-            Identifier texture = IconTexture.getPlayerIcon(playerEntity.uuid);
+            Identifier texture = IconTexture.getPlayerIcon(playerEntity.uuid, playerEntity.name);
 
             // アイコン描画（アイコンサイズは16×16ピクセル）
             final int iconSize = 16;
