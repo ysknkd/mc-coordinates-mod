@@ -3,15 +3,15 @@
 	"id": "mc-coordinates",
 	"version": "${version}",
 	"name": "mc-coordinates",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "minecraft coordinates mod",
 	"authors": [
 		"ysknkd"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://github.com/ysknkd/mc-coordinates-mod",
+		"sources": "https://github.com/ysknkd/mc-coordinates-mod"
 	},
-	"license": "CC0-1.0",
+	"license": "MIT",
 	"icon": "assets/mc-coordinates/icon.png",
 	"environment": "*",
 	"entrypoints": {
