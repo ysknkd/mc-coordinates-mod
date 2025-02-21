@@ -5,7 +5,7 @@ Minecraft Coordinates Mod is a Fabric mod that allows you to record your in-game
 ## Features
 
 - **Save Coordinates:** Record your current position with a short description and an icon.
-- **HUD Display:** Your current coordinates and the positions of players are shown on the screen.
+- **HUD Display:** Your current coordinates and the positions of other players are shown on your screen. *Note: To display other players' positions on the HUD, you must install this mod on the server as well.*
 - **Coordinate List:** Easily view and manage your saved coordinates.
 
 ![Mod Screenshot](assets/screenshot.png)
