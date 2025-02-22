@@ -2,8 +2,8 @@
 	"schemaVersion": 1,
 	"id": "mc-coordinates",
 	"version": "${version}",
-	"name": "mc-coordinates",
-	"description": "minecraft coordinates mod",
+	"name": "Minecraft Coordinates",
+	"description": "Minecraft Coordinates Mod",
 	"authors": [
 		"ysknkd"
 	],
