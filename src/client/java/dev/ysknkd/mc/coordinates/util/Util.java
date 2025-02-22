@@ -1,5 +1,6 @@
 package dev.ysknkd.mc.coordinates.util;
 
+import dev.ysknkd.mc.coordinates.CoordinatesApp;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -24,7 +25,7 @@ import net.minecraft.world.biome.Biome;
 import net.minecraft.util.math.BlockPos;
 
 public class Util {
-    private static final Logger LOGGER = LoggerFactory.getLogger("mc-coordinates");
+    private static final Logger LOGGER = LoggerFactory.getLogger(CoordinatesApp.MOD_ID);
 
     /**
      * 指定された MinecraftClient から現在のワールド名を取得し、"minecraft:" の接頭辞を取り除いて返します。
@@ -66,7 +67,7 @@ public class Util {
     }
 
     // ワールド内に保存するファイル名
-    private static final String UNIQUE_ID_FILE_NAME = "mc-coordinates/unique_id.dat";
+    private static final String UNIQUE_ID_FILE_NAME = CoordinatesApp.MOD_ID + "/unique_id.dat";
 
     /**
      * 統合サーバー(シングルプレイ)から、ワールド固有のUUIDを取得し、

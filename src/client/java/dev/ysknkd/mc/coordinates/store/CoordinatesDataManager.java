@@ -27,6 +27,7 @@ import java.util.Comparator;
 
 /**
  * Utility class for managing and persisting coordinate data.
+ * データファイルのパス例: "config/" + CoordinatesApp.MOD_ID + "/{worldId}/data.json"
  */
 public final class CoordinatesDataManager {
 
@@ -56,13 +57,13 @@ public final class CoordinatesDataManager {
 
     /**
      * Gets the path to the data file based on the given worldId.
-     * Example: "config/mc-coordinates/{worldId}/data.json"
+     * Example: "config/" + CoordinatesApp.MOD_ID + "/{worldId}/data.json"
      *
      * @param worldId Target world ID
      * @return Path to the data file
      */
     private static Path getDataFilePath(String worldId) {
-        return Paths.get("config", "mc-coordinates", worldId, "data.json");
+        return Paths.get("config", CoordinatesApp.MOD_ID, worldId, "data.json");
     }
 
     /**
