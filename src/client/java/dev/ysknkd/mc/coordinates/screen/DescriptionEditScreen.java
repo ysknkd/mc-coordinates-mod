@@ -1,5 +1,6 @@
 package dev.ysknkd.mc.coordinates.screen;
 
+import dev.ysknkd.mc.coordinates.CoordinatesApp;
 import dev.ysknkd.mc.coordinates.store.Coordinates;
 
 import net.fabricmc.api.EnvType;
@@ -23,7 +24,7 @@ public class DescriptionEditScreen extends Screen {
     private TextFieldWidget textField;
 
     public DescriptionEditScreen(Screen parent, Coordinates entry) {
-        super(Text.translatable("modid.description.label"));
+        super(Text.translatable(CoordinatesApp.MOD_ID + ".description.label"));
         this.parent = parent;
         this.entry = entry;
     }
@@ -40,7 +41,7 @@ public class DescriptionEditScreen extends Screen {
         int textFieldHeight = 20;
         int centerX = this.width / 2;
         int centerY = this.height / 2;
-        textField = new TextFieldWidget(this.textRenderer, centerX - textFieldWidth / 2, centerY - textFieldHeight / 2, textFieldWidth, textFieldHeight, Text.translatable("modid.description.label"));
+        textField = new TextFieldWidget(this.textRenderer, centerX - textFieldWidth / 2, centerY - textFieldHeight / 2, textFieldWidth, textFieldHeight, Text.translatable(CoordinatesApp.MOD_ID + ".description.label"));
         textField.setText(entry.description);
         textField.setChangedListener(text -> {});
         this.addSelectableChild(textField);
@@ -48,7 +49,7 @@ public class DescriptionEditScreen extends Screen {
 
         // "Save" button
         this.addDrawableChild(
-            ButtonWidget.builder(Text.translatable("modid.button.save"), button -> {
+            ButtonWidget.builder(Text.translatable(CoordinatesApp.MOD_ID + ".button.save"), button -> {
                 entry.description = textField.getText();
                 close();
             })
@@ -58,7 +59,7 @@ public class DescriptionEditScreen extends Screen {
 
         // "Cancel" button
         this.addDrawableChild(
-            ButtonWidget.builder(Text.translatable("modid.button.cancel"), button -> {
+            ButtonWidget.builder(Text.translatable(CoordinatesApp.MOD_ID + ".button.cancel"), button -> {
                 close();
             })
             .dimensions(centerX + 2, centerY + textFieldHeight, textFieldWidth / 2 - 2, 20)

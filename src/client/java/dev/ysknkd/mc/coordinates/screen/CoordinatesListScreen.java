@@ -10,6 +10,7 @@ import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import dev.ysknkd.mc.coordinates.CoordinatesApp;
 import dev.ysknkd.mc.coordinates.network.ShareCoordinatesClientHandler;
 import dev.ysknkd.mc.coordinates.store.CoordinatesDataManager;
 import dev.ysknkd.mc.coordinates.store.Coordinates;
@@ -48,7 +49,7 @@ public class CoordinatesListScreen extends Screen {
     private static final int PAGINATION_AREA_OFFSET = 60;
 
     public CoordinatesListScreen() {
-        super(Text.translatable("modid.coordinates_list.title"));
+        super(Text.translatable(CoordinatesApp.MOD_ID + ".coordinates_list.title"));
     }
 
     public CoordinatesListScreen(int currentPage) {
@@ -83,7 +84,7 @@ public class CoordinatesListScreen extends Screen {
         int x = this.width / 2 - (CLOSE_BUTTON_WIDTH / 2);
         int y = this.height - 30;
         this.addDrawableChild(
-            ButtonWidget.builder(Text.translatable("modid.button.close"), button -> MinecraftClient.getInstance().setScreen(null))
+            ButtonWidget.builder(Text.translatable(CoordinatesApp.MOD_ID + ".button.close"), button -> MinecraftClient.getInstance().setScreen(null))
                 .dimensions(x, y, CLOSE_BUTTON_WIDTH, CLOSE_BUTTON_HEIGHT)
                 .build()
         );
@@ -191,7 +192,7 @@ public class CoordinatesListScreen extends Screen {
             // "Edit Description" button
             int descX = this.width - ICON_SIZE - LEFT_MARGIN - DESC_BUTTON_WIDTH - ICON_GAP;
             this.addDrawableChild(
-                ButtonWidget.builder(Text.translatable("modid.button.edit_description"), button ->
+                ButtonWidget.builder(Text.translatable(CoordinatesApp.MOD_ID + ".button.edit_description"), button ->
                     MinecraftClient.getInstance().setScreen(new DescriptionEditScreen(this, entry)))
                     .dimensions(descX, rowY, DESC_BUTTON_WIDTH, ICON_SIZE)
                     .build()
