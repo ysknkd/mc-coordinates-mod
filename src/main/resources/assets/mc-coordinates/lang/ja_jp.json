@@ -1,0 +1,14 @@
+{
+    "mc-coordinates.coordinates_list.title": "座標リスト",
+    "mc-coordinates.coordinates_save.success": "座標を保存しました",
+    "mc-coordinates.settings.title": "設定",
+    "mc-coordinates.settings.pin_state.title": "保存時にピン状態: %s",
+    "mc-coordinates.settings.enabled": "有効",
+    "mc-coordinates.settings.disabled": "無効",
+    "mc-coordinates.button.close": "閉じる",
+    "mc-coordinates.button.edit_description": "説明変更",
+    "mc-coordinates.button.back": "戻る",
+    "mc-coordinates.button.save": "保存",
+    "mc-coordinates.button.cancel": "キャンセル",
+    "mc-coordinates.description.label": "説明"
+}
