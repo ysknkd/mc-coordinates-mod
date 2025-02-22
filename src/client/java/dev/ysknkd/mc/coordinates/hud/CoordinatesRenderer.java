@@ -2,6 +2,7 @@ package dev.ysknkd.mc.coordinates.hud;
 
 import dev.ysknkd.mc.coordinates.store.CoordinatesDataListener;
 import dev.ysknkd.mc.coordinates.store.CoordinatesDataManager;
+import dev.ysknkd.mc.coordinates.CoordinatesApp;
 import dev.ysknkd.mc.coordinates.store.Coordinates;
 
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
@@ -25,7 +26,7 @@ public class CoordinatesRenderer implements HudRenderCallback {
                 if (client == null || client.getToastManager() == null) {
                     return;
                 }
-                Notification.show(Text.translatable("modid.coordinates_save.success").getString());
+                Notification.show(Text.translatable(CoordinatesApp.MOD_ID + ".coordinates_save.success").getString());
             }
         });
     }

@@ -1,0 +1,14 @@
+{
+    "mc-coordinates.coordinates_list.title": "Coordinates List",
+    "mc-coordinates.coordinates_save.success": "Coordinates saved",
+    "mc-coordinates.settings.title": "Settings",
+    "mc-coordinates.settings.pin_state.title": "Pin state on save: %s",
+    "mc-coordinates.settings.enabled": "Enabled",
+    "mc-coordinates.settings.disabled": "Disabled",
+    "mc-coordinates.button.close": "Close",
+    "mc-coordinates.button.edit_description": "Edit",
+    "mc-coordinates.button.back": "Back",
+    "mc-coordinates.button.save": "Save",
+    "mc-coordinates.button.cancel": "Cancel",
+    "mc-coordinates.description.label": "Description"
+}
