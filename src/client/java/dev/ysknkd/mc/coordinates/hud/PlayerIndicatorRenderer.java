@@ -21,6 +21,8 @@ import org.joml.Vector4f;
  */
 public final class PlayerIndicatorRenderer implements HudRenderCallback {
 
+    private long frozenTime;
+
     public static void register() {
         HudRenderCallback.EVENT.register(new PlayerIndicatorRenderer());
     }
@@ -29,7 +31,7 @@ public final class PlayerIndicatorRenderer implements HudRenderCallback {
     public void onHudRender(DrawContext context, RenderTickCounter tickCounter) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.world == null) return;
-        
+
         int screenWidth = context.getScaledWindowWidth();
         int screenHeight = context.getScaledWindowHeight();
         SimpleOption<Integer> fovOption = client.options.getFov();
@@ -40,6 +42,16 @@ public final class PlayerIndicatorRenderer implements HudRenderCallback {
 
         // Animation for alpha fade in/out (1-second cycle)
         long time = System.currentTimeMillis();
+        if (client.currentScreen != null) {
+            if (frozenTime == -1) {
+                frozenTime = System.currentTimeMillis();
+            }
+            time = frozenTime;
+        } else {
+            frozenTime = -1;
+            time = System.currentTimeMillis();
+        }
+        
         final float period = 1000.0F;
         float t = (time % (long) period) / period;
         float ease = (t < 0.5F)

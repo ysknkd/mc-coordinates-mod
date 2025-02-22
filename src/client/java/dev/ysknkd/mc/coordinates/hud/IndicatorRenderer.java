@@ -26,6 +26,8 @@ import net.minecraft.client.render.RenderLayer;
  */
 public final class IndicatorRenderer implements HudRenderCallback {
 
+    private long frozenTime;
+
     public static void register() {
         HudRenderCallback.EVENT.register(new IndicatorRenderer());
     }
@@ -54,6 +56,16 @@ public final class IndicatorRenderer implements HudRenderCallback {
 
         // Common calculations within onHudRender()
         long time = System.currentTimeMillis();
+        if (client.currentScreen != null) {
+            if (frozenTime == -1) {
+                frozenTime = System.currentTimeMillis();
+            }
+            time = frozenTime;
+        } else {
+            frozenTime = -1;
+            time = System.currentTimeMillis();
+        }
+
         final float period = 1000.0F;  // 1-second cycle period
         float t = (time % (long) period) / period;
         float minAlpha = 0.3F;  // Minimum opacity (30%)
