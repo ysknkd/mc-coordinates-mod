@@ -5,6 +5,7 @@ import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.lit
 import org.lwjgl.glfw.GLFW;
 
 import dev.ysknkd.mc.coordinates.screen.CoordinatesListScreen;
+import dev.ysknkd.mc.coordinates.CoordinatesApp;
 
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -17,10 +18,10 @@ public class CoordinatesListBinding {
 
     // Key binding for displaying the coordinates list (B key)
     private static final KeyBinding SHOW_COORDINATES_LIST_KEY = KeyBindingHelper.registerKeyBinding(
-            new KeyBinding("key.mc-coordinates.show_coordinates_list",
+            new KeyBinding("key." + CoordinatesApp.MOD_ID + ".show_coordinates_list",
                            InputUtil.Type.KEYSYM,
                            GLFW.GLFW_KEY_B,
-                           "category.mc-coordinates"));
+                           "category." + CoordinatesApp.MOD_ID));
     
     private static boolean showListOnCommand = false;
     

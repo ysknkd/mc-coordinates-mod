@@ -1,5 +1,6 @@
 package dev.ysknkd.mc.coordinates.util;
 
+import dev.ysknkd.mc.coordinates.CoordinatesApp;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.AbstractTexture;
 import net.minecraft.client.texture.NativeImage;
@@ -25,14 +26,14 @@ public class IconTexture {
     private static final Map<UUID, Identifier> FACE_CACHE = new HashMap<>();
 
     // 各テクスチャの Identifier を定義
-    public static final Identifier DEFAULT_TEXTURE = Identifier.of("mc-coordinates", "textures/indicator/pin.png");
-    public static final Identifier DESERT_TEXTURE  = Identifier.of("mc-coordinates", "textures/indicator/desert.png");
-    public static final Identifier ICE_TEXTURE     = Identifier.of("mc-coordinates", "textures/indicator/ice.png");
-    public static final Identifier FOREST_TEXTURE  = Identifier.of("mc-coordinates", "textures/indicator/forest.png");
-    public static final Identifier MOUNTAIN_TEXTURE = Identifier.of("mc-coordinates", "textures/indicator/mountain.png");
-    public static final Identifier PALE_TEXTURE    = Identifier.of("mc-coordinates", "textures/indicator/pale.png");
-    public static final Identifier PLAINS_TEXTURE  = Identifier.of("mc-coordinates", "textures/indicator/plains.png");
-    public static final Identifier RIVER_TEXTURE = Identifier.of("mc-coordinates", "textures/indicator/river.png");
+    public static final Identifier DEFAULT_TEXTURE = Identifier.of(CoordinatesApp.MOD_ID, "textures/indicator/pin.png");
+    public static final Identifier DESERT_TEXTURE  = Identifier.of(CoordinatesApp.MOD_ID, "textures/indicator/desert.png");
+    public static final Identifier ICE_TEXTURE     = Identifier.of(CoordinatesApp.MOD_ID, "textures/indicator/ice.png");
+    public static final Identifier FOREST_TEXTURE  = Identifier.of(CoordinatesApp.MOD_ID, "textures/indicator/forest.png");
+    public static final Identifier MOUNTAIN_TEXTURE = Identifier.of(CoordinatesApp.MOD_ID, "textures/indicator/mountain.png");
+    public static final Identifier PALE_TEXTURE    = Identifier.of(CoordinatesApp.MOD_ID, "textures/indicator/pale.png");
+    public static final Identifier PLAINS_TEXTURE  = Identifier.of(CoordinatesApp.MOD_ID, "textures/indicator/plains.png");
+    public static final Identifier RIVER_TEXTURE = Identifier.of(CoordinatesApp.MOD_ID, "textures/indicator/river.png");
 
     static {
         ICON_MAP.put("default", DEFAULT_TEXTURE);
@@ -47,7 +48,7 @@ public class IconTexture {
 
     /**
      * 指定された位置のバイオームに応じたアイコン識別子を返します。<br>
-     * 例: "minecraft:desert" を含む場合は "desert_icon"、含まれなければ "default_icon" を返します。
+     * 例: "minecraft:desert" を含む場合は "desert"、含まれなければ "default" を返します。
      *
      * @param client MinecraftClient インスタンス
      * @return アイコン識別子

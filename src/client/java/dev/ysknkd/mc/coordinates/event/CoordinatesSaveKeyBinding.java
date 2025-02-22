@@ -12,6 +12,7 @@ import dev.ysknkd.mc.coordinates.store.CoordinatesDataManager;
 import dev.ysknkd.mc.coordinates.store.Coordinates;
 import dev.ysknkd.mc.coordinates.util.IconTexture;
 import dev.ysknkd.mc.coordinates.util.Util;
+import dev.ysknkd.mc.coordinates.CoordinatesApp;
 
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.MinecraftClient;
@@ -25,10 +26,10 @@ public class CoordinatesSaveKeyBinding implements Consumer<MinecraftClient> {
     
     // Key binding for saving coordinates (G key)
     private static final KeyBinding SAVE_COORDINATES_KEY = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-            "key.mc-coordinates.save_coordinates",
+            "key." + CoordinatesApp.MOD_ID + ".save_coordinates",
             InputUtil.Type.KEYSYM,
             GLFW.GLFW_KEY_G,
-            "category.mc-coordinates"
+            "category." + CoordinatesApp.MOD_ID
     ));
     
     public static void register() {
