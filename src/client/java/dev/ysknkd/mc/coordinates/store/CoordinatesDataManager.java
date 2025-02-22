@@ -2,8 +2,8 @@ package dev.ysknkd.mc.coordinates.store;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import dev.ysknkd.mc.coordinates.CoordinatesApp;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -15,6 +15,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
@@ -29,7 +33,7 @@ public final class CoordinatesDataManager {
     // ----------------------------------------------------------------
     // Fields
     // ----------------------------------------------------------------
-    private static final Logger LOGGER = LoggerFactory.getLogger(CoordinatesDataManager.class);
+    private static final Logger LOGGER = LogManager.getLogger(CoordinatesApp.MOD_ID);
 
     // Map to manage entries keyed by UUID
     private static final Map<UUID, Coordinates> entries = new LinkedHashMap<>();
