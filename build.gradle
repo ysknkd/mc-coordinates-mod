@@ -90,6 +90,8 @@ publishing {
 }
 
 release {
+    versionPropertyFile = 'gradle.properties'
+    versionProperties = ['mod_version']
 	preCommitText = '[Gradle Release Plugin] Prepare release version'
 	tagCommitMessage = '[Gradle Release Plugin] Release version ${version}'
 	newVersionCommitMessage = '[Gradle Release Plugin][ci skip] Bump version to {newVersion}'
