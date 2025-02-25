@@ -1,42 +1,68 @@
-# Automatically build the project and create a GitHub release with the built artifacts
-# when a new tag is pushed. This workflow is triggered by pushing a tag that starts with 'v'.
+# Automatically create a new release when a release tag is pushed.
+# This workflow handles:
+# 1. Removing SNAPSHOT from version
+# 2. Building the project
+# 3. Creating a GitHub release with the built JAR
+# 4. Incrementing version and adding SNAPSHOT suffix
 
 name: release
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      releaseVersion:
+        description: 'Release version (without SNAPSHOT)'
+        required: true
+      nextVersion:
+        description: 'Next development version (without SNAPSHOT)'
+        required: true
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-22.04
     steps:
       - name: checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
       - name: validate gradle wrapper
         uses: gradle/actions/wrapper-validation@v4
+      
       - name: setup jdk 21
         uses: actions/setup-java@v4
         with:
           java-version: 21
           distribution: 'microsoft'
+      
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
-      - name: set version without SNAPSHOT
+      
+      - name: configure git
         run: |
-          # Remove v prefix from tag
-          VERSION=${GITHUB_REF#refs/tags/v}
-          # Update mod_version in gradle.properties
-          sed -i "s/mod_version=.*-SNAPSHOT/mod_version=$VERSION/g" gradle.properties
-      - name: build
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+      
+      - name: prepare release
+        run: |
+          ./gradlew release \
+            -Prelease.useAutomaticVersion=true \
+            -Prelease.releaseVersion=${{ github.event.inputs.releaseVersion }} \
+            -Prelease.newVersion=${{ github.event.inputs.nextVersion }}-SNAPSHOT
+      
+      - name: build release artifact
         run: ./gradlew build
-      - name: create release
+      
+      - name: create github release
         uses: softprops/action-gh-release@v2
         with:
-          name: Release ${{ github.ref_name }}
+          tag_name: v${{ github.event.inputs.releaseVersion }}
+          name: Release v${{ github.event.inputs.releaseVersion }}
           draft: false
           prerelease: false
-          generate_release_notes: true
           files: |
-            build/libs/*.jar 
+            build/libs/mc-coordinates-${{ github.event.inputs.releaseVersion }}.jar
+            build/libs/mc-coordinates-${{ github.event.inputs.releaseVersion }}-sources.jar
+          generate_release_notes: true
+          token: ${{ secrets.GITHUB_TOKEN }} 
