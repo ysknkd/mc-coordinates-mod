@@ -1,4 +1,4 @@
-# Automatically create a new release when a release tag is pushed.
+# Automatically create a new release when triggered manually.
 # This workflow handles:
 # 1. Removing SNAPSHOT from version
 # 2. Building the project
@@ -46,23 +46,24 @@ jobs:
       
       - name: prepare release
         run: |
-          ./gradlew release \
-            -Prelease.useAutomaticVersion=true \
-            -Prelease.releaseVersion=${{ github.event.inputs.releaseVersion }} \
-            -Prelease.newVersion=${{ github.event.inputs.nextVersion }}-SNAPSHOT
+          ./gradlew release -Prelease.useAutomaticVersion=true
       
       - name: build release artifact
         run: ./gradlew build
       
+      - name: get release version
+        id: get_version
+        run: |
+          VERSION=$(ls build/libs/mc-coordinates-*.jar | grep -v sources | sed 's/.*mc-coordinates-\(.*\)\.jar/\1/')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+      
       - name: create github release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ github.event.inputs.releaseVersion }}
-          name: Release v${{ github.event.inputs.releaseVersion }}
+          tag_name: v${{ steps.get_version.outputs.version }}
+          name: Release v${{ steps.get_version.outputs.version }}
           draft: false
           prerelease: false
-          files: |
-            build/libs/mc-coordinates-${{ github.event.inputs.releaseVersion }}.jar
-            build/libs/mc-coordinates-${{ github.event.inputs.releaseVersion }}-sources.jar
+          files: build/libs/mc-coordinates-*.jar
           generate_release_notes: true
           token: ${{ secrets.GITHUB_TOKEN }} 
