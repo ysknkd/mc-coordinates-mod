@@ -9,13 +9,6 @@ name: release
 
 on:
   workflow_dispatch:
-    inputs:
-      releaseVersion:
-        description: 'Release version (without SNAPSHOT)'
-        required: true
-      nextVersion:
-        description: 'Next development version (without SNAPSHOT)'
-        required: true
 
 jobs:
   release:
