@@ -2,7 +2,6 @@ plugins {
 	id 'fabric-loom' version '1.9.2'
 	id 'maven-publish'
 	id 'java'
-	id 'net.researchgate.release' version '3.0.1'
 }
 
 version = "${project.minecraft_version}-${project.mod_version}"
@@ -87,12 +86,4 @@ publishing {
 		// The repositories here will be used for publishing your artifact, not for
 		// retrieving dependencies.
 	}
-}
-
-release {
-    versionPropertyFile = 'gradle.properties'
-    versionProperties = ['mod_version']
-	preCommitText = '[Gradle Release Plugin] Prepare release version'
-	tagCommitMessage = '[Gradle Release Plugin] Release version ${mod_version}'
-	newVersionCommitMessage = '[Gradle Release Plugin][ci skip] Bump version to {newVersion}'
 }
