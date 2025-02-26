@@ -10,6 +10,10 @@ name: release
 on:
   workflow_dispatch:
 
+# 権限セクションを追加
+permissions:
+  contents: write
+
 jobs:
   release:
     runs-on: ubuntu-22.04
