@@ -1,6 +1,7 @@
 package dev.ysknkd.mc.coordinates.config;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import dev.ysknkd.mc.coordinates.CoordinatesApp;
 
 import java.io.IOException;
@@ -19,12 +20,16 @@ public class Config {
     // Determines whether the pin state is enabled by default when saving (default is false)
     private static final boolean DEFAULT_PIN_STATE = false;
     private static boolean defaultPinState = false;
+    // Default minimum distance for player indicators
+    private static final int DEFAULT_PLAYER_INDICATOR_MIN_DISTANCE = 10;
+    private static int playerIndicatorMinDistance = DEFAULT_PLAYER_INDICATOR_MIN_DISTANCE;
     // Stores the current worldId (initially "unknown")
     private static String currentWorldId = "unknown";
 
     // Internal structure for JSON serialization of configuration data
     private static class ConfigData {
         boolean defaultPinState;
+        int playerIndicatorMinDistance;
     }
     
     /**
@@ -52,9 +57,14 @@ public class Config {
         }
         Gson gson = new Gson();
         try (Reader reader = Files.newBufferedReader(configFile, StandardCharsets.UTF_8)) {
-            ConfigData data = gson.fromJson(reader, ConfigData.class);
-            if (data != null) {
-                defaultPinState = data.defaultPinState;
+            JsonObject jsonObject = gson.fromJson(reader, JsonObject.class);
+            if (jsonObject != null) {
+                if (jsonObject.has("defaultPinState")) {
+                    defaultPinState = jsonObject.get("defaultPinState").getAsBoolean();
+                }
+                if (jsonObject.has("playerIndicatorMinDistance")) {
+                    playerIndicatorMinDistance = jsonObject.get("playerIndicatorMinDistance").getAsInt();
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -73,10 +83,12 @@ public class Config {
             e.printStackTrace();
         }
         Gson gson = new Gson();
-        ConfigData data = new ConfigData();
-        data.defaultPinState = defaultPinState;
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("defaultPinState", defaultPinState);
+        jsonObject.addProperty("playerIndicatorMinDistance", playerIndicatorMinDistance);
+        
         try (Writer writer = Files.newBufferedWriter(configFile, StandardCharsets.UTF_8)) {
-            gson.toJson(data, writer);
+            gson.toJson(jsonObject, writer);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -108,9 +120,28 @@ public class Config {
     }
 
     /**
-     * Resets the configuration to its default pin state.
+     * Sets the minimum distance for player indicators.
+     *
+     * @param distance the minimum distance in blocks
+     */
+    public static void setPlayerIndicatorMinDistance(int distance) {
+        playerIndicatorMinDistance = distance;
+    }
+
+    /**
+     * Returns the current minimum distance for player indicators.
+     *
+     * @return the minimum distance in blocks
+     */
+    public static int getPlayerIndicatorMinDistance() {
+        return playerIndicatorMinDistance;
+    }
+
+    /**
+     * Resets the configuration to its default values.
      */
     public static void reset() {
         defaultPinState = DEFAULT_PIN_STATE;
+        playerIndicatorMinDistance = DEFAULT_PLAYER_INDICATOR_MIN_DISTANCE;
     }
 } 
