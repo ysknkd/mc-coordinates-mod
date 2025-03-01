@@ -103,3 +103,23 @@ jobs:
           files: build/libs/mc-coordinates-*.jar
           generate_release_notes: true
           token: ${{ secrets.GITHUB_TOKEN }} 
+
+      - name: Set Minecraft Version from gradle.properties
+        id: get_minecraft_version
+        run: |
+          version=$(grep '^minecraft_version=' gradle.properties | cut -d'=' -f2)
+          echo "MINECRAFT_VERSION=${version}" >> $GITHUB_ENV
+          echo "Detected Minecraft version: ${version}"
+
+      - name: Publish to CurseForge
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          curseforge-id: ${{ secrets.CURSEFORGE_PROJECT_ID }}
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+          
+          version: ${{ steps.version.outputs.tag_name }}
+          version-type: release
+          
+          loaders: fabric
+          game-versions: ${{ env.MINECRAFT_VERSION }}
+          java: ${{ env.JAVA_VERSION }}
