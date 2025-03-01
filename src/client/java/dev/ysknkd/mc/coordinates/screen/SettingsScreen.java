@@ -30,7 +30,7 @@ public class SettingsScreen extends Screen {
     @Override
     protected void init() {
         int centerX = this.width / 2;
-        int centerY = this.height / 2 - 10;
+        int centerY = this.height / 2 - 30;
 
         // Retrieve text resource based on the current boolean value
         Text pinStatusText = Config.getDefaultPinState() ?
@@ -51,10 +51,45 @@ public class SettingsScreen extends Screen {
             .build()
         );
 
+        // Add indicator distance setting
+        final ButtonWidget indicatorDistanceButton = ButtonWidget.builder(
+            Text.translatable(CoordinatesApp.MOD_ID + ".settings.indicator_distance.title", 
+                String.format("%.0f", Config.getMinIndicatorDistance())),
+            button -> {}).dimensions(centerX - 100, centerY + 25, 200, 20).build();
+        this.addDrawableChild(indicatorDistanceButton);
+        
+        // Decrease button
+        this.addDrawableChild(
+            ButtonWidget.builder(
+                Text.of("-"),
+                button -> {
+                    Config.decreaseMinIndicatorDistance();
+                    indicatorDistanceButton.setMessage(
+                        Text.translatable(CoordinatesApp.MOD_ID + ".settings.indicator_distance.title", 
+                            String.format("%.0f", Config.getMinIndicatorDistance())));
+                })
+            .dimensions(centerX - 125, centerY + 25, 20, 20)
+            .build()
+        );
+        
+        // Increase button
+        this.addDrawableChild(
+            ButtonWidget.builder(
+                Text.of("+"),
+                button -> {
+                    Config.increaseMinIndicatorDistance();
+                    indicatorDistanceButton.setMessage(
+                        Text.translatable(CoordinatesApp.MOD_ID + ".settings.indicator_distance.title", 
+                            String.format("%.0f", Config.getMinIndicatorDistance())));
+                })
+            .dimensions(centerX + 105, centerY + 25, 20, 20)
+            .build()
+        );
+
         // Back button: returns to CoordinatesListScreen
         this.addDrawableChild(
             ButtonWidget.builder(Text.translatable(CoordinatesApp.MOD_ID + ".button.back"), button -> close())
-            .dimensions(centerX - 50, centerY + 30, 100, 20)
+            .dimensions(centerX - 50, centerY + 55, 100, 20)
             .build()
         );
     }

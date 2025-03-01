@@ -19,12 +19,18 @@ public class Config {
     // Determines whether the pin state is enabled by default when saving (default is false)
     private static final boolean DEFAULT_PIN_STATE = false;
     private static boolean defaultPinState = false;
+    
+    // Default minimum distance to show player indicators (default is 10.0)
+    private static final double DEFAULT_MIN_INDICATOR_DISTANCE = 10.0;
+    private static double minIndicatorDistance = DEFAULT_MIN_INDICATOR_DISTANCE;
+    
     // Stores the current worldId (initially "unknown")
     private static String currentWorldId = "unknown";
 
     // Internal structure for JSON serialization of configuration data
     private static class ConfigData {
         boolean defaultPinState;
+        double minIndicatorDistance;
     }
     
     /**
@@ -55,6 +61,10 @@ public class Config {
             ConfigData data = gson.fromJson(reader, ConfigData.class);
             if (data != null) {
                 defaultPinState = data.defaultPinState;
+                // Handle the case where the config file is from an older version without this property
+                if (data.minIndicatorDistance > 0) {
+                    minIndicatorDistance = data.minIndicatorDistance;
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -75,6 +85,7 @@ public class Config {
         Gson gson = new Gson();
         ConfigData data = new ConfigData();
         data.defaultPinState = defaultPinState;
+        data.minIndicatorDistance = minIndicatorDistance;
         try (Writer writer = Files.newBufferedWriter(configFile, StandardCharsets.UTF_8)) {
             gson.toJson(data, writer);
         } catch (IOException e) {
@@ -108,9 +119,42 @@ public class Config {
     }
 
     /**
-     * Resets the configuration to its default pin state.
+     * Returns the minimum distance for showing player indicators.
+     *
+     * @return the minimum distance in blocks
+     */
+    public static double getMinIndicatorDistance() {
+        return minIndicatorDistance;
+    }
+    
+    /**
+     * Sets the minimum distance for showing player indicators.
+     *
+     * @param distance the minimum distance in blocks
+     */
+    public static void setMinIndicatorDistance(double distance) {
+        minIndicatorDistance = distance;
+    }
+    
+    /**
+     * Increases the minimum indicator distance by 5 blocks up to a maximum of 50.
+     */
+    public static void increaseMinIndicatorDistance() {
+        minIndicatorDistance = Math.min(50.0, minIndicatorDistance + 5.0);
+    }
+    
+    /**
+     * Decreases the minimum indicator distance by 5 blocks down to a minimum of 0.
+     */
+    public static void decreaseMinIndicatorDistance() {
+        minIndicatorDistance = Math.max(0.0, minIndicatorDistance - 5.0);
+    }
+    
+    /**
+     * Resets the configuration to its default values.
      */
     public static void reset() {
         defaultPinState = DEFAULT_PIN_STATE;
+        minIndicatorDistance = DEFAULT_MIN_INDICATOR_DISTANCE;
     }
 } 

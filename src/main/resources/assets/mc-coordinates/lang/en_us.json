@@ -3,6 +3,7 @@
     "mc-coordinates.coordinates_save.success": "Coordinates saved",
     "mc-coordinates.settings.title": "Settings",
     "mc-coordinates.settings.pin_state.title": "Pin state on save: %s",
+    "mc-coordinates.settings.indicator_distance.title": "Player indicator min distance: %s blocks",
     "mc-coordinates.settings.enabled": "Enabled",
     "mc-coordinates.settings.disabled": "Disabled",
     "mc-coordinates.button.close": "Close",

@@ -3,6 +3,7 @@
     "mc-coordinates.coordinates_save.success": "座標を保存しました",
     "mc-coordinates.settings.title": "設定",
     "mc-coordinates.settings.pin_state.title": "保存時にピン状態: %s",
+    "mc-coordinates.settings.indicator_distance.title": "プレイヤーインジケーター最小距離: %sブロック",
     "mc-coordinates.settings.enabled": "有効",
     "mc-coordinates.settings.disabled": "無効",
     "mc-coordinates.button.close": "閉じる",

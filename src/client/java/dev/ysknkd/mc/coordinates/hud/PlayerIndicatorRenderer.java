@@ -1,5 +1,6 @@
 package dev.ysknkd.mc.coordinates.hud;
 
+import dev.ysknkd.mc.coordinates.config.Config;
 import dev.ysknkd.mc.coordinates.store.PlayerCoordinatesCache;
 import dev.ysknkd.mc.coordinates.store.PlayerCoordinates;
 import dev.ysknkd.mc.coordinates.util.IconTexture;
@@ -77,13 +78,13 @@ public final class PlayerIndicatorRenderer implements HudRenderCallback {
             Vec3d camPos = camera.getPos();
             double distance = camPos.distanceTo(new Vec3d(worldX, worldY, worldZ));
 
-            // Do not display the indicator if the distance is less than 10 blocks
-            if (distance < 10.0) {
+            // Do not display the indicator if the distance is less than the configured minimum
+            if (distance < Config.getMinIndicatorDistance()) {
                 continue;
             }
 
             // Determine scale based on distance (closer -> larger, farther -> smaller)
-            final double nearDistance = 10.0;
+            final double nearDistance = Math.max(10.0, Config.getMinIndicatorDistance());
             final double farDistance = 100.0;
             final float minScale = 0.4f, maxScale = 1.0f;
             float scale;
