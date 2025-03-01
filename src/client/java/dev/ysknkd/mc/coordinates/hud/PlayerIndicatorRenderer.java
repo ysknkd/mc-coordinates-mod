@@ -3,6 +3,7 @@ package dev.ysknkd.mc.coordinates.hud;
 import dev.ysknkd.mc.coordinates.store.PlayerCoordinatesCache;
 import dev.ysknkd.mc.coordinates.store.PlayerCoordinates;
 import dev.ysknkd.mc.coordinates.util.IconTexture;
+import dev.ysknkd.mc.coordinates.util.Util;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
@@ -62,7 +63,11 @@ public final class PlayerIndicatorRenderer implements HudRenderCallback {
         int alphaInt = (int)(alphaValue * 255);
         int tintColor = (alphaInt << 24) | 0xFFFFFF;
 
+        String currentWorld = Util.getCurrentWorldName(client);
+
         for (PlayerCoordinates playerEntity : PlayerCoordinatesCache.getCoordinatesList()) {
+            if (playerEntity.world == null || !playerEntity.world.equals(currentWorld)) continue;
+
             // Treat world coordinates as the center of the block
             float worldX = (float)(Math.floor(playerEntity.x) + 0.5);
             float worldY = (float)(Math.floor(playerEntity.y) + 0.5);
