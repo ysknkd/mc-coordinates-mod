@@ -150,7 +150,7 @@ public class IconTexture {
         }
 
         // 動的テクスチャとして登録
-        NativeImageBackedTexture faceTexture = new NativeImageBackedTexture(faceImage);
+        NativeImageBackedTexture faceTexture = new NativeImageBackedTexture(null, faceImage);
         Identifier faceTextureId = Identifier.of("bungggo", "player_face/" + playerId);
         client.getTextureManager().registerTexture(faceTextureId, faceTexture);
         FACE_CACHE.put(playerId, faceTextureId);
