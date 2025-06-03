@@ -29,8 +29,8 @@ import java.util.ArrayList;
 public class CoordinatesListScreen extends Screen {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CoordinatesListScreen.class);
-    // Number of entries displayed per page
-    private static final int ENTRIES_PER_PAGE = 6;
+    // Number of entries displayed per page (will be calculated dynamically)
+    private int entriesPerPage;
     // Current page number (zero-indexed)
     private int currentPage = 0;
 
@@ -59,14 +59,24 @@ public class CoordinatesListScreen extends Screen {
 
     @Override
     protected void init() {
+        calculateEntriesPerPage();
+        
         List<Coordinates> entries = new ArrayList<>(CoordinatesDataManager.getEntries());
         int totalEntries = entries.size();
-        int totalPages = (totalEntries + ENTRIES_PER_PAGE - 1) / ENTRIES_PER_PAGE;
+        int totalPages = (totalEntries + entriesPerPage - 1) / entriesPerPage;
 
         addSettingsButton();
         addCloseButton();
         addPaginationButtons(totalPages);
-        addWidgets(entries, currentPage * ENTRIES_PER_PAGE, Math.min((currentPage + 1) * ENTRIES_PER_PAGE, totalEntries));
+        addWidgets(entries, currentPage * entriesPerPage, Math.min((currentPage + 1) * entriesPerPage, totalEntries));
+    }
+
+    /**
+     * Calculate the number of entries that can be displayed per page based on screen height.
+     */
+    private void calculateEntriesPerPage() {
+        int availableHeight = this.height - TOP_MARGIN - PAGINATION_AREA_OFFSET - 20;
+        this.entriesPerPage = Math.max(1, availableHeight / ROW_HEIGHT);
     }
 
     private void addSettingsButton() {
@@ -237,8 +247,8 @@ public class CoordinatesListScreen extends Screen {
     private void renderEntriesText(DrawContext context) {
         List<Coordinates> entries = new ArrayList<>(CoordinatesDataManager.getEntries());
         int totalEntries = entries.size();
-        int startIndex = currentPage * ENTRIES_PER_PAGE;
-        int endIndex = Math.min(startIndex + ENTRIES_PER_PAGE, totalEntries);
+        int startIndex = currentPage * entriesPerPage;
+        int endIndex = Math.min(startIndex + entriesPerPage, totalEntries);
         int x = LEFT_MARGIN + ICON_SIZE * 3 + ICON_GAP * 3;
         int iconX = x - 1; // -1 is adjust ...
         int iconSize = 8; // 8 x 8
@@ -264,7 +274,7 @@ public class CoordinatesListScreen extends Screen {
         int paginationAreaY = this.height - PAGINATION_AREA_OFFSET;
         List<Coordinates> entries = new ArrayList<>(CoordinatesDataManager.getEntries());
         int totalEntries = entries.size();
-        int totalPages = (totalEntries + ENTRIES_PER_PAGE - 1) / ENTRIES_PER_PAGE;
+        int totalPages = (totalEntries + entriesPerPage - 1) / entriesPerPage;
         String pageInfo = (currentPage + 1) + " / " + totalPages;
         int textY = paginationAreaY + (PAGER_BUTTON_HEIGHT - this.textRenderer.fontHeight) / 2;
         context.drawCenteredTextWithShadow(this.textRenderer, pageInfo, this.width / 2, textY, 0xFFFFFF);
