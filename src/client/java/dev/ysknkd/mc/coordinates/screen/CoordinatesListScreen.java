@@ -16,6 +16,7 @@ import dev.ysknkd.mc.coordinates.store.CoordinatesDataManager;
 import dev.ysknkd.mc.coordinates.store.Coordinates;
 import dev.ysknkd.mc.coordinates.util.IconTexture;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.gl.RenderPipelines;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -238,7 +239,7 @@ public class CoordinatesListScreen extends Screen {
      * Render title at top.
      */
     private void renderTitle(DrawContext context) {
-        context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 10, 0xFFFFFF);
+        context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 10, 0xFFFFFFFF);
     }
 
     /**
@@ -259,11 +260,11 @@ public class CoordinatesListScreen extends Screen {
 
             int displayIndex = i - startIndex;
             int row1y = TOP_MARGIN + displayIndex * ROW_HEIGHT + 2;
-            context.drawText(this.textRenderer, entry.getCoordinatesText(), x, row1y, 0xFFFFFF, true);
+            context.drawText(this.textRenderer, entry.getCoordinatesText(), x, row1y, 0xFFFFFFFF, true);
 
             int row2y = row1y + this.textRenderer.fontHeight;
-            context.drawTexture(RenderLayer::getGuiTextured, IconTexture.getIcon(entry.icon), iconX, row2y, 0, 0, iconSize, iconSize, iconSize, iconSize);
-            context.drawText(this.textRenderer, entry.description, descX, row2y, 0xFFFFFF, true);
+            context.drawTexture(RenderPipelines.GUI_TEXTURED, IconTexture.getIcon(entry.icon), iconX, row2y, 0, 0, iconSize, iconSize, iconSize, iconSize);
+            context.drawText(this.textRenderer, entry.description, descX, row2y, 0xFFFFFFFF, true);
         }
     }
 
@@ -277,7 +278,7 @@ public class CoordinatesListScreen extends Screen {
         int totalPages = (totalEntries + entriesPerPage - 1) / entriesPerPage;
         String pageInfo = (currentPage + 1) + " / " + totalPages;
         int textY = paginationAreaY + (PAGER_BUTTON_HEIGHT - this.textRenderer.fontHeight) / 2;
-        context.drawCenteredTextWithShadow(this.textRenderer, pageInfo, this.width / 2, textY, 0xFFFFFF);
+        context.drawCenteredTextWithShadow(this.textRenderer, pageInfo, this.width / 2, textY, 0xFFFFFFFF);
     }
 
     @Override

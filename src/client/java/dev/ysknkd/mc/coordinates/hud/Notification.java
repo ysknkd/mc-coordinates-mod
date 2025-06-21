@@ -76,7 +76,7 @@ public class Notification implements HudRenderCallback {
         
         // Text color: white with applied alpha (max value 224)
         int textAlpha = (int) (alphaFactor * 224);
-        int textColor = (textAlpha << 24) | 0xFFFFFF;
+        int textColor = (textAlpha << 24) | 0xFFFFFF;  // Note: Final result will have correct alpha
         context.drawText(client.textRenderer, currentMessage, x, y, textColor, false);
     }
 }

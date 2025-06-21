@@ -11,6 +11,7 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.option.SimpleOption;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
@@ -106,9 +107,9 @@ public final class PlayerIndicatorRenderer implements HudRenderCallback {
             int screenY = clamp((int)((1.0f - ndcY) * 0.5f * screenHeight), 0, screenHeight);
 
             // Render the player's icon (skin texture)
-            context.getMatrices().push();
-            context.getMatrices().translate(screenX, screenY, 0);
-            context.getMatrices().scale(scale, scale, 1.0F);
+            context.getMatrices().pushMatrix();
+            context.getMatrices().translate(screenX, screenY);
+            context.getMatrices().scale(scale, scale);
 
             // Retrieve the player's icon (skin) from their GameProfile
             Identifier texture = IconTexture.getPlayerIcon(playerEntity.uuid, playerEntity.name);
@@ -118,7 +119,7 @@ public final class PlayerIndicatorRenderer implements HudRenderCallback {
             int drawX = -iconSize / 2;
             int drawY = -iconSize; // Adjust to align the bottom center of the icon with the origin
             context.drawTexture(
-                RenderLayer::getGuiTextured,
+                RenderPipelines.GUI_TEXTURED,
                 texture,
                 drawX, drawY,
                 0.0F, 0.0F,
@@ -126,7 +127,7 @@ public final class PlayerIndicatorRenderer implements HudRenderCallback {
                 iconSize, iconSize,
                 tintColor
             );
-            context.getMatrices().pop();
+            context.getMatrices().popMatrix();
 
             // Render distance text
             String distanceText = String.format("%.1f", distance);
