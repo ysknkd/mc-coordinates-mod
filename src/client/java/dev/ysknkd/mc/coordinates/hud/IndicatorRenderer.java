@@ -5,6 +5,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.option.SimpleOption;
 import net.minecraft.client.render.RenderTickCounter;
+import net.minecraft.util.Identifier;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -18,6 +19,7 @@ import dev.ysknkd.mc.coordinates.util.Util;
 
 import java.util.Optional;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.gl.RenderPipelines;
 
 /**
  * Renders a simplified indicator on the HUD.
@@ -82,7 +84,7 @@ public final class IndicatorRenderer implements HudRenderCallback {
         }
         float alphaValue = minAlpha + ease * (maxAlpha - minAlpha);
         int alphaInt = (int)(alphaValue * 255);
-        int tintColor = (alphaInt << 24) | 0xFFFFFF;
+        int tintColor = (alphaInt << 24) | 0xFFFFFF;  // Note: Final result will have correct alpha
 
         // Process each pinned coordinate entry
         for (Coordinates entry : CoordinatesDataManager.getPinnedEntriesByWorld(Util.getCurrentWorldName(client))) {
@@ -115,13 +117,13 @@ public final class IndicatorRenderer implements HudRenderCallback {
             ScreenCoordinate coord = optionalCoord.get();
 
             // Scale and translate the pin image based on calculated coordinates
-            context.getMatrices().push();
-            context.getMatrices().translate(coord.x, coord.y, 0);
-            context.getMatrices().scale(scale, scale, 1.0F);
+            context.getMatrices().pushMatrix();
+            context.getMatrices().translate(coord.x, coord.y);
+            context.getMatrices().scale(scale, scale);
 
             // Render the pin image texture (to be implemented according to texture rendering routines)
             context.drawTexture(
-                RenderLayer::getGuiTextured,
+                RenderPipelines.GUI_TEXTURED,
                 IconTexture.getIcon(entry.icon),
                 -pinWidth / 2, -pinHeight / 2,
                 0.0F, 0.0F,
@@ -129,7 +131,7 @@ public final class IndicatorRenderer implements HudRenderCallback {
                 pinWidth, pinHeight,
                 tintColor
             );
-            context.getMatrices().pop();
+            context.getMatrices().popMatrix();
 
             // Render distance text
             String distanceText = String.format("%.1f", distance);

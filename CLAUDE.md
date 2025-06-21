@@ -15,7 +15,7 @@ This is a Minecraft Fabric mod that allows players to record in-game coordinates
 - `./gradlew clean` - Clean build artifacts
 
 **Project Structure:**
-- Built with Fabric Mod Loader for Minecraft 1.21.5
+- Built with Fabric Mod Loader for modern Minecraft versions
 - Uses Java 21 and Gradle with Fabric Loom plugin
 - Outputs JAR to `build/libs/` directory
 
@@ -83,9 +83,87 @@ This is a Minecraft Fabric mod that allows players to record in-game coordinates
 - Configuration options: `src/client/java/.../config/Config.java`
 - Screen modifications: `src/client/java/.../screen/` package
 
+**Common Problem Areas:**
+- Rendering components: Check for API changes in texture/text rendering methods
+- Screen implementations: Verify background rendering and blur usage patterns
+- Color values: Ensure proper alpha channel in color specifications
+- Matrix operations: Validate transformation method calls and parameters
+
+## Minecraft Version Migration Guide
+
+**Version Upgrade Process:**
+- Update dependency versions in `gradle.properties` (minecraft_version, yarn_mappings, loader_version, fabric_version)
+- Adjust compatibility requirements in `fabric.mod.json`
+- Compile to identify API changes and compatibility issues
+- Address compilation errors systematically by priority
+
+**Common API Changes:**
+- Rendering API evolution (method references, parameter changes, new pipeline systems)
+- Color value format changes (RGB vs ARGB, alpha channel requirements)
+- Screen rendering pattern updates (background rendering, blur limitations)
+- Matrix transformation API modifications
+
+**Migration Strategy:**
+- Update dependencies incrementally to isolate issues
+- Use compilation errors as a roadmap for required changes
+- Test frequently during migration to catch regressions early
+- Document changes for future reference
+
+## Debugging and Troubleshooting
+
+**Systematic Problem-Solving Approach:**
+- Prioritize compilation errors by impact and dependency
+- Analyze error messages to identify root causes
+- Use experimental fixes to validate hypotheses
+- Implement changes incrementally with testing
+
+**Investigation Tools and Techniques:**
+- Java decompilation tools (javap, etc.) for internal implementation analysis
+- Source code pattern analysis and search
+- Fabric deepwiki queries for API documentation
+- Step-by-step problem isolation through targeted fixes
+
+**Common Problem Patterns:**
+- Text rendering issues: Check color values for proper alpha channel
+- Screen rendering crashes: Verify background rendering call patterns
+- API compatibility: Investigate method signature changes
+- Matrix operations: Validate transformation API usage
+
+**Verification and Testing:**
+- Compile after each significant change
+- Run client/server tests to verify functionality
+- Check for regression in existing features
+- Document solutions for future reference
+
+## Development Best Practices
+
+**Compatibility-Focused Coding:**
+- Avoid deprecated APIs when possible
+- Use recommended implementation patterns from Fabric documentation
+- Design for maintainability across version updates
+- Follow established project conventions and patterns
+
+**API Usage Guidelines:**
+- Research proper usage patterns before implementing new features
+- Validate API calls with proper parameter types and values
+- Consider future-proofing when choosing between alternative approaches
+- Test edge cases and error conditions
+
+**Maintenance and Documentation:**
+- Document non-obvious implementation decisions
+- Track technical debt and plan for resolution
+- Share knowledge through code comments and documentation
+- Establish testing procedures for critical functionality
+
+**Version Migration Preparation:**
+- Monitor Fabric and Minecraft development for upcoming changes
+- Maintain compatibility with multiple versions when feasible
+- Create rollback procedures for failed migrations
+- Establish testing environments for new versions
+
 ## Mod Metadata
 
 - Mod ID: `mc-coordinates`
 - Supports both client and server environments
 - Requires Fabric API and Java 21+
-- Compatible with Minecraft 1.21.4+
+- Compatible with modern Minecraft versions (check gradle.properties for current target)
