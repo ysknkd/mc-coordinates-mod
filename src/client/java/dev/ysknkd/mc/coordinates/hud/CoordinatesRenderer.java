@@ -87,7 +87,7 @@ public class CoordinatesRenderer implements HudRenderCallback {
     }
 
     private void renderCurrentCoordinates(DrawContext context, MinecraftClient client) {
-        // Se le coordinate sono nascoste, non disegnare nulla
+        
         if (hideCoordinates) {
             return;
         }
