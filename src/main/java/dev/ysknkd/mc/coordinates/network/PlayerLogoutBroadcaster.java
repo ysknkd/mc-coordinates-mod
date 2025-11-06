@@ -14,7 +14,7 @@ public class PlayerLogoutBroadcaster {
         // Register the logout event
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             ServerPlayerEntity disconnectedPlayer = handler.getPlayer();
-            broadcastLogout(disconnectedPlayer);
+            broadcastLogout(disconnectedPlayer, server);
         });
 
         PayloadTypeRegistry.playS2C().register(PlayerLogoutPayload.ID, PlayerLogoutPayload.CODEC);
@@ -25,9 +25,9 @@ public class PlayerLogoutBroadcaster {
      *
      * @param disconnectedPlayer The player who has logged out.
      */
-    private static void broadcastLogout(ServerPlayerEntity disconnectedPlayer) {
+    private static void broadcastLogout(ServerPlayerEntity disconnectedPlayer, net.minecraft.server.MinecraftServer server) {
         PlayerLogoutPayload payload = new PlayerLogoutPayload(disconnectedPlayer.getUuid());
-        disconnectedPlayer.getServer().getPlayerManager().getPlayerList().forEach(player -> {
+        server.getPlayerManager().getPlayerList().forEach(player -> {
             if (!player.getUuid().equals(disconnectedPlayer.getUuid())) {
                 ServerPlayNetworking.send(player, payload);
             }

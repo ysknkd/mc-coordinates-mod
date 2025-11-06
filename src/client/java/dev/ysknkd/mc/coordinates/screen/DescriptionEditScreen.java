@@ -86,20 +86,20 @@ public class DescriptionEditScreen extends Screen {
 
     // Forward key input to the text field
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(net.minecraft.client.input.KeyInput input) {
         if (textField.isFocused()) {
-            textField.keyPressed(keyCode, scanCode, modifiers);
+            textField.keyPressed(input);
             return true;
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(input);
     }
 
     @Override
-    public boolean charTyped(char chr, int keyCode) {
+    public boolean charTyped(net.minecraft.client.input.CharInput input) {
         if (textField.isFocused()) {
-            textField.charTyped(chr, keyCode);
+            textField.charTyped(input);
             return true;
         }
-        return super.charTyped(chr, keyCode);
+        return super.charTyped(input);
     }
 }

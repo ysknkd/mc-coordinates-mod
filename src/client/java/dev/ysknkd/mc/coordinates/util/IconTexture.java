@@ -6,7 +6,7 @@ import net.minecraft.client.texture.AbstractTexture;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.client.texture.PlayerSkinProvider;
-import net.minecraft.client.util.SkinTextures;
+import net.minecraft.entity.player.SkinTextures;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 import java.util.HashMap;
@@ -109,8 +109,8 @@ public class IconTexture {
 
         // UUID からダミーの GameProfile を作成してスキンを取得
         GameProfile profile = new GameProfile(playerId, playerName);
-        SkinTextures skin = skinProvider.getSkinTextures(profile);
-        Identifier texture = skin.texture();
+        SkinTextures skin = skinProvider.supplySkinTextures(profile, false).get();
+        Identifier texture = skin.body().texturePath();
         if (texture == null) {
             return Identifier.of("minecraft", "textures/entity/steve.png");
         }

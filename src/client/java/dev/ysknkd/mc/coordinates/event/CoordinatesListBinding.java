@@ -16,12 +16,16 @@ import net.minecraft.client.util.InputUtil;
 
 public class CoordinatesListBinding {
 
+    // Key binding category
+    private static final KeyBinding.Category COORDINATES_CATEGORY =
+        KeyBinding.Category.create(net.minecraft.util.Identifier.of(CoordinatesApp.MOD_ID, "main"));
+
     // Key binding for displaying the coordinates list (B key)
     private static final KeyBinding SHOW_COORDINATES_LIST_KEY = KeyBindingHelper.registerKeyBinding(
             new KeyBinding("key." + CoordinatesApp.MOD_ID + ".show_coordinates_list",
                            InputUtil.Type.KEYSYM,
                            GLFW.GLFW_KEY_B,
-                           "category." + CoordinatesApp.MOD_ID));
+                           COORDINATES_CATEGORY));
     
     private static boolean showListOnCommand = false;
     

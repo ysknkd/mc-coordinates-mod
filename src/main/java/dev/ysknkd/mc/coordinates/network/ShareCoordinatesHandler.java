@@ -23,7 +23,7 @@ public class ShareCoordinatesHandler implements PlayPayloadHandler<ShareCoordina
             ShareCoordinatesPayload outgoing = new ShareCoordinatesPayload(senderPlayer.getUuid(), payload.uuid(), payload.x(),
                     payload.y(), payload.z(), payload.description(), payload.world(), payload.pinned(), payload.icon());
 
-            for (ServerPlayerEntity target : senderPlayer.getServer().getPlayerManager().getPlayerList()) {
+            for (ServerPlayerEntity target : context.server().getPlayerManager().getPlayerList()) {
                 if (!target.getUuid().equals(senderPlayer.getUuid())) {
                     ServerPlayNetworking.send(target, outgoing);
                 }
