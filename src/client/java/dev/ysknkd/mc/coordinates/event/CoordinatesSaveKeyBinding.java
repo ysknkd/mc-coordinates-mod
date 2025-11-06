@@ -24,8 +24,8 @@ import net.minecraft.client.util.InputUtil;
  */
 public class CoordinatesSaveKeyBinding implements Consumer<MinecraftClient> {
 
-    // Key binding category
-    private static final KeyBinding.Category COORDINATES_CATEGORY =
+    // Key binding category - shared with other key bindings
+    public static final KeyBinding.Category COORDINATES_CATEGORY =
         KeyBinding.Category.create(net.minecraft.util.Identifier.of(CoordinatesApp.MOD_ID, "main"));
 
     // Key binding for saving coordinates (G key)
