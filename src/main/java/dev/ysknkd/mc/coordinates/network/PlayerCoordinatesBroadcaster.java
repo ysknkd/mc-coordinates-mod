@@ -26,7 +26,7 @@ public class PlayerCoordinatesBroadcaster implements ServerTickEvents.EndTick {
         for (ServerPlayerEntity recipient : server.getPlayerManager().getPlayerList()) {
             for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
                 if (!player.getUuid().equals(recipient.getUuid())) {
-                    String world = player.getWorld().getRegistryKey().getValue().toString();
+                    String world = player.getEntityWorld().getRegistryKey().getValue().toString();
                     PlayerCoordinatesPayload payload = new PlayerCoordinatesPayload(
                         player.getUuid(),
                         player.getX(),

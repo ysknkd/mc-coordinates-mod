@@ -23,13 +23,17 @@ import net.minecraft.client.util.InputUtil;
  * Handles the key input for saving coordinate data (G key).
  */
 public class CoordinatesSaveKeyBinding implements Consumer<MinecraftClient> {
-    
+
+    // Key binding category - shared with other key bindings
+    public static final KeyBinding.Category COORDINATES_CATEGORY =
+        KeyBinding.Category.create(net.minecraft.util.Identifier.of(CoordinatesApp.MOD_ID, "main"));
+
     // Key binding for saving coordinates (G key)
     private static final KeyBinding SAVE_COORDINATES_KEY = KeyBindingHelper.registerKeyBinding(new KeyBinding(
             "key." + CoordinatesApp.MOD_ID + ".save_coordinates",
             InputUtil.Type.KEYSYM,
             GLFW.GLFW_KEY_G,
-            "category." + CoordinatesApp.MOD_ID
+            COORDINATES_CATEGORY
     ));
     
     public static void register() {

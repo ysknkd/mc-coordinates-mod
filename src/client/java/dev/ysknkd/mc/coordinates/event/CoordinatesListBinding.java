@@ -21,7 +21,7 @@ public class CoordinatesListBinding {
             new KeyBinding("key." + CoordinatesApp.MOD_ID + ".show_coordinates_list",
                            InputUtil.Type.KEYSYM,
                            GLFW.GLFW_KEY_B,
-                           "category." + CoordinatesApp.MOD_ID));
+                           CoordinatesSaveKeyBinding.COORDINATES_CATEGORY));
     
     private static boolean showListOnCommand = false;
     
