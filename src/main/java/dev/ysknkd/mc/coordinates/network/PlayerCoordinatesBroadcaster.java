@@ -24,6 +24,10 @@ public class PlayerCoordinatesBroadcaster implements ServerTickEvents.EndTick {
     private void send(MinecraftServer server) {
         // For each recipient, send individual coordinate data of every other player
         for (ServerPlayer recipient : server.getPlayerList().getPlayers()) {
+            if (!ServerPlayNetworking.canSend(recipient, PlayerCoordinatesPayload.ID)) {
+                continue;
+            }
+
             for (ServerPlayer player : server.getPlayerList().getPlayers()) {
                 if (!player.getUUID().equals(recipient.getUUID())) {
                     String world = player.level().dimension().identifier().toString();

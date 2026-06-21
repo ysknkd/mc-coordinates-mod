@@ -28,7 +28,8 @@ public class PlayerLogoutBroadcaster {
     private static void broadcastLogout(ServerPlayer disconnectedPlayer, net.minecraft.server.MinecraftServer server) {
         PlayerLogoutPayload payload = new PlayerLogoutPayload(disconnectedPlayer.getUUID());
         server.getPlayerList().getPlayers().forEach(player -> {
-            if (!player.getUUID().equals(disconnectedPlayer.getUUID())) {
+            if (!player.getUUID().equals(disconnectedPlayer.getUUID())
+                    && ServerPlayNetworking.canSend(player, PlayerLogoutPayload.ID)) {
                 ServerPlayNetworking.send(player, payload);
             }
         });
