@@ -35,7 +35,8 @@ dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings loom.layered {
-		mappings file("mappings/empty-26.2.tiny")
+		// 26.2 does not currently publish usable Yarn mappings.
+		mappings file("mappings/identity-26.2.tiny")
 	}
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
