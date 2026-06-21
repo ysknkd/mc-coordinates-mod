@@ -1,15 +1,18 @@
 package dev.ysknkd.mc.coordinates.hud;
 
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.RenderTickCounter;
+import dev.ysknkd.mc.coordinates.CoordinatesApp;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.resources.Identifier;
 
 /**
  * Displays temporary notification messages on the HUD.
  */
-public class Notification implements HudRenderCallback {
+public class Notification implements HudElement {
     // The currently displayed message
     private static String currentMessage = null;
     // The timestamp when the message display started (in milliseconds)
@@ -18,7 +21,9 @@ public class Notification implements HudRenderCallback {
     private static long messageEndTime = 0;
 
     public static void register() {
-        HudRenderCallback.EVENT.register(new Notification());
+        HudElementRegistry.addLast(
+                Identifier.fromNamespaceAndPath(CoordinatesApp.MOD_ID, "notification"),
+                new Notification());
     }
 
     public static void show(String message) {
@@ -32,7 +37,7 @@ public class Notification implements HudRenderCallback {
     }
 
     @Override
-    public void onHudRender(DrawContext context, RenderTickCounter tickCounter) {
+    public void extractRenderState(GuiGraphicsExtractor context, DeltaTracker tickCounter) {
         if (currentMessage == null) {
             return;
         }
@@ -44,8 +49,8 @@ public class Notification implements HudRenderCallback {
             return;
         }
         
-        MinecraftClient client = MinecraftClient.getInstance();
-        TextRenderer textRenderer = client.textRenderer;
+        Minecraft client = Minecraft.getInstance();
+        Font textRenderer = client.font;
         
         // Fade-out effect: gradually decrease opacity during the last 500 milliseconds
         float alphaFactor = 1.0f;
@@ -56,8 +61,8 @@ public class Notification implements HudRenderCallback {
         }
         
         // Text dimensions
-        int textWidth = textRenderer.getWidth(currentMessage);
-        int textHeight = textRenderer.fontHeight;
+        int textWidth = textRenderer.width(currentMessage);
+        int textHeight = textRenderer.lineHeight;
         
         int x = 10;
         int y = 20;
@@ -77,6 +82,6 @@ public class Notification implements HudRenderCallback {
         // Text color: white with applied alpha (max value 224)
         int textAlpha = (int) (alphaFactor * 224);
         int textColor = (textAlpha << 24) | 0xFFFFFF;  // Note: Final result will have correct alpha
-        context.drawText(client.textRenderer, currentMessage, x, y, textColor, false);
+        context.text(client.font, currentMessage, x, y, textColor, false);
     }
 }

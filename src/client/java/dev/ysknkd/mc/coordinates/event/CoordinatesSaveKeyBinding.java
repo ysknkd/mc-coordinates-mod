@@ -4,8 +4,8 @@ import java.util.function.Consumer;
 
 import org.lwjgl.glfw.GLFW;
 
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 
 import dev.ysknkd.mc.coordinates.config.Config;
 import dev.ysknkd.mc.coordinates.store.CoordinatesDataManager;
@@ -14,24 +14,25 @@ import dev.ysknkd.mc.coordinates.util.IconTexture;
 import dev.ysknkd.mc.coordinates.util.Util;
 import dev.ysknkd.mc.coordinates.CoordinatesApp;
 
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
+import com.mojang.blaze3d.platform.InputConstants;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.Identifier;
 
 /**
  * Handles the key input for saving coordinate data (G key).
  */
-public class CoordinatesSaveKeyBinding implements Consumer<MinecraftClient> {
+public class CoordinatesSaveKeyBinding implements Consumer<Minecraft> {
 
     // Key binding category - shared with other key bindings
-    public static final KeyBinding.Category COORDINATES_CATEGORY =
-        KeyBinding.Category.create(net.minecraft.util.Identifier.of(CoordinatesApp.MOD_ID, "main"));
+    public static final KeyMapping.Category COORDINATES_CATEGORY =
+        KeyMapping.Category.register(Identifier.fromNamespaceAndPath(CoordinatesApp.MOD_ID, "main"));
 
     // Key binding for saving coordinates (G key)
-    private static final KeyBinding SAVE_COORDINATES_KEY = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+    private static final KeyMapping SAVE_COORDINATES_KEY = KeyMappingHelper.registerKeyMapping(new KeyMapping(
             "key." + CoordinatesApp.MOD_ID + ".save_coordinates",
-            InputUtil.Type.KEYSYM,
+            InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_G,
             COORDINATES_CATEGORY
     ));
@@ -46,14 +47,14 @@ public class CoordinatesSaveKeyBinding implements Consumer<MinecraftClient> {
      * Saves the current position, world information, and configuration-based pin state.
      */
     @Override
-    public void accept(MinecraftClient client) {
-        if (client.player == null || client.world == null) {
+    public void accept(Minecraft client) {
+        if (client.player == null || client.level == null) {
             return;
         }
 
         // Raycast to determine the position from the center of the screen.
-        HitResult hitResult = client.player.raycast(3, 1.0F, false);
-        Vec3d hitPos = hitResult.getPos();
+        HitResult hitResult = client.player.pick(3, 1.0F, false);
+        Vec3 hitPos = hitResult.getLocation();
         double x = hitPos.x;
         double y = hitPos.y;
         double z = hitPos.z;

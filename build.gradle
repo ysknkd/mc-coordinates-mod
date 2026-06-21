@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.11.8'
+	id 'fabric-loom' version "${loom_version}"
 	id 'maven-publish'
 	id 'java'
 }
@@ -34,7 +34,9 @@ loom {
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+	mappings loom.layered {
+		mappings file("mappings/empty-26.2.tiny")
+	}
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
@@ -51,7 +53,7 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 21
+	it.options.release = 25
 }
 
 java {
@@ -60,8 +62,13 @@ java {
 	// If you remove this line, sources will not be generated.
 	withSourcesJar()
 
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
+}
+
+// Minecraft 26.2 does not currently provide usable intermediary mappings, so Loom cannot remap sources.
+tasks.matching { it.name == "remapSourcesJar" }.configureEach {
+	enabled = false
 }
 
 jar {

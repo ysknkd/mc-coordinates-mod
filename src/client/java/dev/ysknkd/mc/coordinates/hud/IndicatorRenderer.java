@@ -1,56 +1,50 @@
 package dev.ysknkd.mc.coordinates.hud;
 
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.option.SimpleOption;
-import net.minecraft.client.render.RenderTickCounter;
-import net.minecraft.util.Identifier;
-import org.joml.Matrix4f;
-import org.joml.Vector3f;
-
-import net.minecraft.client.render.Camera;
-import net.minecraft.util.math.Vec3d;
-
+import dev.ysknkd.mc.coordinates.CoordinatesApp;
 import dev.ysknkd.mc.coordinates.store.CoordinatesDataManager;
 import dev.ysknkd.mc.coordinates.store.Coordinates;
 import dev.ysknkd.mc.coordinates.util.IconTexture;
 import dev.ysknkd.mc.coordinates.util.Util;
 
 import java.util.Optional;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.gl.RenderPipelines;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.minecraft.client.Camera;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Renders a simplified indicator on the HUD.
  * Calculates the angle on the horizontal plane from the player's camera position to each pinned coordinate,
  * and displays a red rectangle at a fixed distance from the center of the screen.
  */
-public final class IndicatorRenderer implements HudRenderCallback {
+public final class IndicatorRenderer implements HudElement {
 
     private long frozenTime;
 
     public static void register() {
-        HudRenderCallback.EVENT.register(new IndicatorRenderer());
+        HudElementRegistry.addLast(
+                Identifier.fromNamespaceAndPath(CoordinatesApp.MOD_ID, "indicators"),
+                new IndicatorRenderer());
     }
 
     @Override
-    public void onHudRender(DrawContext context, RenderTickCounter tickCounter) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.world == null) return;
+    public void extractRenderState(GuiGraphicsExtractor context, DeltaTracker tickCounter) {
+        Minecraft client = Minecraft.getInstance();
+        if (client.level == null) return;
 
         if (!CoordinatesDataManager.hasPinnedEntriesByWorld(Util.getCurrentWorldName(client))) {
             return;
         }
 
-        int screenWidth = context.getScaledWindowWidth();
-        int screenHeight = context.getScaledWindowHeight();
+        int screenWidth = context.guiWidth();
+        int screenHeight = context.guiHeight();
 
-        SimpleOption<Integer> fovOption = client.options.getFov();
-        Matrix4f projectionMatrix = client.gameRenderer.getBasicProjectionMatrix(fovOption.getValue());
-        Camera camera = client.gameRenderer.getCamera();
-        Matrix4f viewMatrix = computeViewMatrix(camera);
-        Matrix4f viewProjMatrix = projectionMatrix.mul(viewMatrix, new Matrix4f());
+        Camera camera = client.gameRenderer.mainCamera();
 
         // Pin image drawing dimensions (original size)
         final int pinWidth = 16;
@@ -58,7 +52,7 @@ public final class IndicatorRenderer implements HudRenderCallback {
 
         // Common calculations within onHudRender()
         long time = System.currentTimeMillis();
-        if (client.currentScreen != null) {
+        if (client.gui.screen() != null) {
             if (frozenTime == -1) {
                 frozenTime = System.currentTimeMillis();
             }
@@ -94,8 +88,9 @@ public final class IndicatorRenderer implements HudRenderCallback {
             float worldZ = (float) (Math.floor(entry.z) + 0.5);
 
             // Calculate the distance from the camera
-            Vec3d cameraPos = camera.getPos();
-            double distance = cameraPos.distanceTo(new Vec3d(worldX, worldY, worldZ));
+            Vec3 cameraPos = camera.position();
+            Vec3 worldPos = new Vec3(worldX, worldY, worldZ);
+            double distance = cameraPos.distanceTo(worldPos);
 
             // Determine scale based on distance (closer gives maximum scale; farther gives minimum)
             final double nearDistance = 10.0;
@@ -112,54 +107,34 @@ public final class IndicatorRenderer implements HudRenderCallback {
             }
 
             // Convert world coordinates to screen coordinates
-            Optional<ScreenCoordinate> optionalCoord = calculateScreenCoordinate(entry, viewProjMatrix, screenWidth, screenHeight);
+            Optional<ScreenCoordinate> optionalCoord = calculateScreenCoordinate(worldPos, client, screenWidth, screenHeight);
             if (!optionalCoord.isPresent()) continue;
             ScreenCoordinate coord = optionalCoord.get();
 
-            // Scale and translate the pin image based on calculated coordinates
-            context.getMatrices().pushMatrix();
-            context.getMatrices().translate(coord.x, coord.y);
-            context.getMatrices().scale(scale, scale);
-
             // Render the pin image texture (to be implemented according to texture rendering routines)
-            context.drawTexture(
+            int scaledPinWidth = Math.max(1, Math.round(pinWidth * scale));
+            int scaledPinHeight = Math.max(1, Math.round(pinHeight * scale));
+            context.blit(
                 RenderPipelines.GUI_TEXTURED,
                 IconTexture.getIcon(entry.icon),
-                -pinWidth / 2, -pinHeight / 2,
+                coord.x - scaledPinWidth / 2, coord.y - scaledPinHeight / 2,
                 0.0F, 0.0F,
-                pinWidth, pinHeight,
+                scaledPinWidth, scaledPinHeight,
                 pinWidth, pinHeight,
                 tintColor
             );
-            context.getMatrices().popMatrix();
 
             // Render distance text
             String distanceText = String.format("%.1f", distance);
             int textColor = 0xAAFFFFFF; // 半透明の白色
-            int distanceTextWidth = client.textRenderer.getWidth(distanceText);
-            context.drawText(client.textRenderer, distanceText, coord.x - distanceTextWidth / 2, coord.y + 8, textColor, false);
+            int distanceTextWidth = client.font.width(distanceText);
+            context.text(client.font, distanceText, coord.x - distanceTextWidth / 2, coord.y + 8, textColor, false);
 
             // Render description text
             String descriptionText = entry.description;
-            int descriptionTextWidth = client.textRenderer.getWidth(descriptionText);
-            context.drawText(client.textRenderer, descriptionText, coord.x - descriptionTextWidth / 2, coord.y + 20, textColor, false);
+            int descriptionTextWidth = client.font.width(descriptionText);
+            context.text(client.font, descriptionText, coord.x - descriptionTextWidth / 2, coord.y + 20, textColor, false);
         }
-    }
-
-    /**
-     * Computes the view matrix from the camera's position and rotation.
-     *
-     * @param camera The camera containing position and rotation info.
-     * @return The computed view matrix.
-     */
-    private static Matrix4f computeViewMatrix(Camera camera) {
-        Vec3d camPos = camera.getPos();
-        Vector3f eye = new Vector3f((float) camPos.x, (float) camPos.y, (float) camPos.z);
-        Vector3f forward = new Vector3f(0, 0, -1);
-        camera.getRotation().transform(forward);
-        Vector3f up = new Vector3f(0, 1, 0);
-        camera.getRotation().transform(up);
-        return new Matrix4f().lookAt(eye, new Vector3f(eye).add(forward), up);
     }
 
     /**
@@ -195,20 +170,12 @@ public final class IndicatorRenderer implements HudRenderCallback {
      * @param screenHeight Screen height.
      * @return An Optional containing the screen coordinate if visible.
      */
-    private static Optional<ScreenCoordinate> calculateScreenCoordinate(Coordinates entry, Matrix4f viewProjMatrix, int screenWidth, int screenHeight) {
-        float worldX = (float)(Math.floor(entry.x) + 0.5);
-        float worldY = (float)(Math.floor(entry.y) + 0.5);
-        float worldZ = (float)(Math.floor(entry.z) + 0.5);
+    private static Optional<ScreenCoordinate> calculateScreenCoordinate(Vec3 worldPos, Minecraft client, int screenWidth, int screenHeight) {
+        Vec3 screenPos = client.gameRenderer.projectPointToScreen(worldPos);
+        if (screenPos == null || !screenPos.isFinite()) return Optional.empty();
 
-        org.joml.Vector4f pos = new org.joml.Vector4f(worldX, worldY, worldZ, 1.0f);
-        viewProjMatrix.transform(pos);
-        if (pos.w <= 0.0f) return Optional.empty();
-
-        float ndcX = pos.x / pos.w;
-        float ndcY = pos.y / pos.w;
-
-        int indicatorX = clamp((int)((ndcX + 1.0f) * 0.5f * screenWidth), 0, screenWidth);
-        int indicatorY = clamp((int)((1.0f - ndcY) * 0.5f * screenHeight), 0, screenHeight);
+        int indicatorX = clamp((int) screenPos.x, 0, screenWidth);
+        int indicatorY = clamp((int) screenPos.y, 0, screenHeight);
 
         return Optional.of(new ScreenCoordinate(indicatorX, indicatorY));
     }

@@ -1,22 +1,15 @@
 package dev.ysknkd.mc.coordinates.util;
 
 import dev.ysknkd.mc.coordinates.CoordinatesApp;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.AbstractTexture;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.texture.NativeImageBackedTexture;
-import net.minecraft.client.texture.PlayerSkinProvider;
-import net.minecraft.entity.player.SkinTextures;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.DefaultPlayerSkin;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.player.PlayerSkin;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 import com.mojang.authlib.GameProfile;
-
-import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * エントリで指定された icon 名に対応するテクスチャ識別子を返すクラスです。
@@ -26,14 +19,14 @@ public class IconTexture {
     private static final Map<UUID, Identifier> FACE_CACHE = new HashMap<>();
 
     // 各テクスチャの Identifier を定義
-    public static final Identifier DEFAULT_TEXTURE = Identifier.of(CoordinatesApp.MOD_ID, "textures/indicator/pin.png");
-    public static final Identifier DESERT_TEXTURE  = Identifier.of(CoordinatesApp.MOD_ID, "textures/indicator/desert.png");
-    public static final Identifier ICE_TEXTURE     = Identifier.of(CoordinatesApp.MOD_ID, "textures/indicator/ice.png");
-    public static final Identifier FOREST_TEXTURE  = Identifier.of(CoordinatesApp.MOD_ID, "textures/indicator/forest.png");
-    public static final Identifier MOUNTAIN_TEXTURE = Identifier.of(CoordinatesApp.MOD_ID, "textures/indicator/mountain.png");
-    public static final Identifier PALE_TEXTURE    = Identifier.of(CoordinatesApp.MOD_ID, "textures/indicator/pale.png");
-    public static final Identifier PLAINS_TEXTURE  = Identifier.of(CoordinatesApp.MOD_ID, "textures/indicator/plains.png");
-    public static final Identifier RIVER_TEXTURE = Identifier.of(CoordinatesApp.MOD_ID, "textures/indicator/river.png");
+    public static final Identifier DEFAULT_TEXTURE = Identifier.fromNamespaceAndPath(CoordinatesApp.MOD_ID, "textures/indicator/pin.png");
+    public static final Identifier DESERT_TEXTURE  = Identifier.fromNamespaceAndPath(CoordinatesApp.MOD_ID, "textures/indicator/desert.png");
+    public static final Identifier ICE_TEXTURE     = Identifier.fromNamespaceAndPath(CoordinatesApp.MOD_ID, "textures/indicator/ice.png");
+    public static final Identifier FOREST_TEXTURE  = Identifier.fromNamespaceAndPath(CoordinatesApp.MOD_ID, "textures/indicator/forest.png");
+    public static final Identifier MOUNTAIN_TEXTURE = Identifier.fromNamespaceAndPath(CoordinatesApp.MOD_ID, "textures/indicator/mountain.png");
+    public static final Identifier PALE_TEXTURE    = Identifier.fromNamespaceAndPath(CoordinatesApp.MOD_ID, "textures/indicator/pale.png");
+    public static final Identifier PLAINS_TEXTURE  = Identifier.fromNamespaceAndPath(CoordinatesApp.MOD_ID, "textures/indicator/plains.png");
+    public static final Identifier RIVER_TEXTURE = Identifier.fromNamespaceAndPath(CoordinatesApp.MOD_ID, "textures/indicator/river.png");
 
     static {
         ICON_MAP.put("default", DEFAULT_TEXTURE);
@@ -50,10 +43,10 @@ public class IconTexture {
      * 指定された位置のバイオームに応じたアイコン識別子を返します。<br>
      * 例: "minecraft:desert" を含む場合は "desert"、含まれなければ "default" を返します。
      *
-     * @param client MinecraftClient インスタンス
+     * @param client Minecraft インスタンス
      * @return アイコン識別子
      */
-    public static String getIconName(MinecraftClient client) {
+    public static String getIconName(Minecraft client) {
         String biome = Util.getBiome(client);
 
         if (biome.contains("desert")) {
@@ -97,63 +90,18 @@ public class IconTexture {
      */
     public static Identifier getPlayerIcon(UUID playerId, String playerName) {
         if (playerId == null) {
-            return Identifier.of("minecraft", "textures/entity/steve.png");
+            return DefaultPlayerSkin.getDefaultTexture();
         }
         // 既にキャッシュにある場合はそれを返す
         if (FACE_CACHE.containsKey(playerId)) {
             return FACE_CACHE.get(playerId);
         }
 
-        MinecraftClient client = MinecraftClient.getInstance();
-        PlayerSkinProvider skinProvider = client.getSkinProvider();
-
-        // UUID からダミーの GameProfile を作成してスキンを取得
+        Minecraft client = Minecraft.getInstance();
         GameProfile profile = new GameProfile(playerId, playerName);
-        SkinTextures skin = skinProvider.supplySkinTextures(profile, false).get();
+        PlayerSkin skin = client.getSkinManager().createLookup(profile, false).get();
         Identifier texture = skin.body().texturePath();
-        if (texture == null) {
-            return Identifier.of("minecraft", "textures/entity/steve.png");
-        }
-
-        // TextureManager から取得済みの場合、NativeImage を利用
-        NativeImage fullImage = null;
-        AbstractTexture abstractTexture = client.getTextureManager().getTexture(texture);
-        if (abstractTexture instanceof NativeImageBackedTexture) {
-            NativeImageBackedTexture skinTexture = (NativeImageBackedTexture) abstractTexture;
-            fullImage = skinTexture.getImage();
-        } else {
-            // フォールバック：ResourceManager から直接読み込む
-            ResourceManager resourceManager = client.getResourceManager();
-            try (InputStream stream = resourceManager.open(texture)) {
-                fullImage = NativeImage.read(stream);
-            } catch (IOException e) {
-                return Identifier.of("minecraft", "textures/entity/steve.png");
-            }
-        }
-        if (fullImage == null) {
-            return Identifier.of("minecraft", "textures/entity/steve.png");
-        }
-
-        // 顔部分の領域 (通常は 8×8 ピクセル)：左上が (8,8)、右下が (16,16)
-        final int faceX = 8;
-        final int faceY = 8;
-        final int faceWidth = 8;
-        final int faceHeight = 8;
-
-        // 新規 NativeImage を生成し、顔部分のピクセル（ARGB値）をコピー
-        NativeImage faceImage = new NativeImage(faceWidth, faceHeight, false);
-        for (int x = 0; x < faceWidth; x++) {
-            for (int y = 0; y < faceHeight; y++) {
-                int pixel = fullImage.getColorArgb(faceX + x, faceY + y);
-                faceImage.setColorArgb(x, y, pixel);
-            }
-        }
-
-        // 動的テクスチャとして登録
-        NativeImageBackedTexture faceTexture = new NativeImageBackedTexture(null, faceImage);
-        Identifier faceTextureId = Identifier.of("bungggo", "player_face/" + playerId);
-        client.getTextureManager().registerTexture(faceTextureId, faceTexture);
-        FACE_CACHE.put(playerId, faceTextureId);
-        return faceTextureId;
+        FACE_CACHE.put(playerId, texture);
+        return texture;
     }
-} 
+}

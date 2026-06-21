@@ -1,8 +1,8 @@
 package dev.ysknkd.mc.coordinates.event;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -12,10 +12,10 @@ public class KeyBindingEventHandler {
 
     // Represents a key binding listener with its associated callback.
     public static class KeyBindingListener {
-        private final KeyBinding keyBinding;
-        private final Consumer<MinecraftClient> callback;
+        private final KeyMapping keyBinding;
+        private final Consumer<Minecraft> callback;
 
-        public KeyBindingListener(KeyBinding keyBinding, Consumer<MinecraftClient> callback) {
+        public KeyBindingListener(KeyMapping keyBinding, Consumer<Minecraft> callback) {
             if (keyBinding == null || callback == null) {
                 throw new IllegalArgumentException("keyBinding and callback must not be null");
             }
@@ -23,8 +23,8 @@ public class KeyBindingEventHandler {
             this.callback = callback;
         }
 
-        public void tick(MinecraftClient client) {
-            while (keyBinding.wasPressed()) {
+        public void tick(Minecraft client) {
+            while (keyBinding.consumeClick()) {
                 callback.accept(client);
             }
         }
@@ -38,16 +38,16 @@ public class KeyBindingEventHandler {
      * @param keyBinding The key to monitor
      * @param callback   The callback to execute upon key press
      */
-    public static void registerListener(KeyBinding keyBinding, Consumer<MinecraftClient> callback) {
+    public static void registerListener(KeyMapping keyBinding, Consumer<Minecraft> callback) {
         listeners.add(new KeyBindingListener(keyBinding, callback));
     }
 
     // Check all registered key bindings on each client tick.
     static {
-        ClientTickEvents.END_CLIENT_TICK.register((MinecraftClient client) -> {
+        ClientTickEvents.END_CLIENT_TICK.register((Minecraft client) -> {
             for (KeyBindingListener listener : listeners) {
                 listener.tick(client);
             }
         });
     }
-} 
+}

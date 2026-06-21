@@ -3,12 +3,12 @@ package dev.ysknkd.mc.coordinates.network;
 import java.util.UUID;
 
 import dev.ysknkd.mc.coordinates.CoordinatesApp;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Uuids;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 
 public record PlayerCoordinatesPayload(
     UUID uuid,
@@ -17,22 +17,23 @@ public record PlayerCoordinatesPayload(
     double z,
     String name,
     String world
-) implements CustomPayload {
+) implements CustomPacketPayload {
 
-    public static final CustomPayload.Id<PlayerCoordinatesPayload> ID = new Id<>(Identifier.of(CoordinatesApp.MOD_ID, "player_coordinates"));
+    public static final CustomPacketPayload.Type<PlayerCoordinatesPayload> ID =
+        new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(CoordinatesApp.MOD_ID, "player_coordinates"));
 
-    public static final PacketCodec<RegistryByteBuf, PlayerCoordinatesPayload> CODEC = PacketCodec.tuple(
-        Uuids.PACKET_CODEC, PlayerCoordinatesPayload::uuid,
-        PacketCodecs.DOUBLE, PlayerCoordinatesPayload::x,
-        PacketCodecs.DOUBLE, PlayerCoordinatesPayload::y,
-        PacketCodecs.DOUBLE, PlayerCoordinatesPayload::z,
-        PacketCodecs.STRING, PlayerCoordinatesPayload::name,
-        PacketCodecs.STRING, PlayerCoordinatesPayload::world,
+    public static final StreamCodec<RegistryFriendlyByteBuf, PlayerCoordinatesPayload> CODEC = StreamCodec.composite(
+        UUIDUtil.STREAM_CODEC, PlayerCoordinatesPayload::uuid,
+        ByteBufCodecs.DOUBLE, PlayerCoordinatesPayload::x,
+        ByteBufCodecs.DOUBLE, PlayerCoordinatesPayload::y,
+        ByteBufCodecs.DOUBLE, PlayerCoordinatesPayload::z,
+        ByteBufCodecs.STRING_UTF8, PlayerCoordinatesPayload::name,
+        ByteBufCodecs.STRING_UTF8, PlayerCoordinatesPayload::world,
         PlayerCoordinatesPayload::new
     );
 
     @Override
-    public CustomPayload.Id<? extends CustomPayload> getId() {
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
         return ID;
     }
 }

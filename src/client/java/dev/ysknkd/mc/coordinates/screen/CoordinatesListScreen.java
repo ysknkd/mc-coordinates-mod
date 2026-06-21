@@ -2,11 +2,11 @@ package dev.ysknkd.mc.coordinates.screen;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,8 +15,7 @@ import dev.ysknkd.mc.coordinates.network.ShareCoordinatesClientHandler;
 import dev.ysknkd.mc.coordinates.store.CoordinatesDataManager;
 import dev.ysknkd.mc.coordinates.store.Coordinates;
 import dev.ysknkd.mc.coordinates.util.IconTexture;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.gl.RenderPipelines;
+import net.minecraft.client.renderer.RenderPipelines;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -50,7 +49,7 @@ public class CoordinatesListScreen extends Screen {
     private static final int PAGINATION_AREA_OFFSET = 60;
 
     public CoordinatesListScreen() {
-        super(Text.translatable(CoordinatesApp.MOD_ID + ".coordinates_list.title"));
+        super(Component.translatable(CoordinatesApp.MOD_ID + ".coordinates_list.title"));
     }
 
     public CoordinatesListScreen(int currentPage) {
@@ -83,10 +82,10 @@ public class CoordinatesListScreen extends Screen {
     private void addSettingsButton() {
         int x = this.width - ICON_SIZE - LEFT_MARGIN;
         int y = 10;
-        this.addDrawableChild(
-            ButtonWidget.builder(Text.literal("⚙"), button ->
-                MinecraftClient.getInstance().setScreen(new SettingsScreen(this)))
-            .dimensions(x, y, ICON_SIZE, ICON_SIZE)
+        this.addRenderableWidget(
+            Button.builder(Component.literal("⚙"), button ->
+                Minecraft.getInstance().gui.setScreen(new SettingsScreen(this)))
+            .bounds(x, y, ICON_SIZE, ICON_SIZE)
             .build()
         );
     }
@@ -94,9 +93,9 @@ public class CoordinatesListScreen extends Screen {
     private void addCloseButton() {
         int x = this.width / 2 - (CLOSE_BUTTON_WIDTH / 2);
         int y = this.height - 30;
-        this.addDrawableChild(
-            ButtonWidget.builder(Text.translatable(CoordinatesApp.MOD_ID + ".button.close"), button -> MinecraftClient.getInstance().setScreen(null))
-                .dimensions(x, y, CLOSE_BUTTON_WIDTH, CLOSE_BUTTON_HEIGHT)
+        this.addRenderableWidget(
+            Button.builder(Component.translatable(CoordinatesApp.MOD_ID + ".button.close"), button -> Minecraft.getInstance().gui.setScreen(null))
+                .bounds(x, y, CLOSE_BUTTON_WIDTH, CLOSE_BUTTON_HEIGHT)
                 .build()
         );
     }
@@ -109,16 +108,16 @@ public class CoordinatesListScreen extends Screen {
     private void addPaginationButtons(int totalPages) {
         int paginationAreaY = this.height - PAGINATION_AREA_OFFSET;
         String pageInfo = (currentPage + 1) + " / " + totalPages;
-        int pageInfoWidth = this.textRenderer.getWidth(pageInfo);
+        int pageInfoWidth = this.font.width(pageInfo);
         int centerX = this.width / 2;
 
         // Left side "<" button (if not first page)
         if (currentPage > 0) {
             int leftX = centerX - pageInfoWidth / 2 - PAGER_BUTTON_WIDTH - PAGER_GAP;
-            this.addDrawableChild(
-                ButtonWidget.builder(Text.literal("<"), button -> 
-                    MinecraftClient.getInstance().setScreen(new CoordinatesListScreen(currentPage - 1)))
-                    .dimensions(leftX, paginationAreaY, PAGER_BUTTON_WIDTH, PAGER_BUTTON_HEIGHT)
+            this.addRenderableWidget(
+                Button.builder(Component.literal("<"), button ->
+                    Minecraft.getInstance().gui.setScreen(new CoordinatesListScreen(currentPage - 1)))
+                    .bounds(leftX, paginationAreaY, PAGER_BUTTON_WIDTH, PAGER_BUTTON_HEIGHT)
                     .build()
             );
         }
@@ -126,10 +125,10 @@ public class CoordinatesListScreen extends Screen {
         // Right side ">" button (if not last page)
         if (currentPage < totalPages - 1) {
             int rightX = centerX + pageInfoWidth / 2 + PAGER_GAP;
-            this.addDrawableChild(
-                ButtonWidget.builder(Text.literal(">"), button -> 
-                    MinecraftClient.getInstance().setScreen(new CoordinatesListScreen(currentPage + 1)))
-                    .dimensions(rightX, paginationAreaY, PAGER_BUTTON_WIDTH, PAGER_BUTTON_HEIGHT)
+            this.addRenderableWidget(
+                Button.builder(Component.literal(">"), button ->
+                    Minecraft.getInstance().gui.setScreen(new CoordinatesListScreen(currentPage + 1)))
+                    .bounds(rightX, paginationAreaY, PAGER_BUTTON_WIDTH, PAGER_BUTTON_HEIGHT)
                     .build()
             );
         }
@@ -149,86 +148,74 @@ public class CoordinatesListScreen extends Screen {
             Coordinates entry = entries.get(i);
 
             // Favorite toggle button (use entry.icon)
-            this.addDrawableChild(new ToggleIconButton(
-                LEFT_MARGIN,
-                rowY,
-                ICON_SIZE,
-                ICON_SIZE,
-                Text.literal("☆"),
-                button -> {
+            this.addRenderableWidget(
+                Button.builder(Component.literal("☆"), button -> {
                     entry.favorite = !entry.favorite;
-                    MinecraftClient.getInstance().setScreen(new CoordinatesListScreen(currentPage));
-                },
-                entry.favorite
-            ));
+                    Minecraft.getInstance().gui.setScreen(new CoordinatesListScreen(currentPage));
+                })
+                .bounds(LEFT_MARGIN, rowY, ICON_SIZE, ICON_SIZE)
+                .build()
+            );
 
             // Pin toggle button
             int pinX = LEFT_MARGIN + ICON_SIZE + ICON_GAP;
-            this.addDrawableChild(new ToggleIconButton(
-                pinX,
-                rowY,
-                ICON_SIZE,
-                ICON_SIZE,
-                Text.literal("📌"),
-                button -> {
+            this.addRenderableWidget(
+                Button.builder(Component.literal("📌"), button -> {
                     entry.pinned = !entry.pinned;
                     if (entry.share) {
                         // If valid, treat as shared state and always share
                         ShareCoordinatesClientHandler.send(entry);
                     }
-                    MinecraftClient.getInstance().setScreen(new CoordinatesListScreen(currentPage));
-                },
-                entry.pinned
-            ));
+                    Minecraft.getInstance().gui.setScreen(new CoordinatesListScreen(currentPage));
+                })
+                .bounds(pinX, rowY, ICON_SIZE, ICON_SIZE)
+                .build()
+            );
 
             // Share button to toggle
             int shareX = LEFT_MARGIN + (ICON_SIZE + ICON_GAP) * 2;
-            this.addDrawableChild(new ToggleIconButton(
-                shareX,
-                rowY,
-                ICON_SIZE,
-                ICON_SIZE,
-                Text.literal("🔗"),
-                button -> {
+            this.addRenderableWidget(
+                Button.builder(Component.literal("🔗"), button -> {
                     entry.share = !entry.share;
                     if (entry.share) {
                         // If valid, treat as shared state and always share
                         ShareCoordinatesClientHandler.send(entry);
                     }
-                    MinecraftClient.getInstance().setScreen(new CoordinatesListScreen(currentPage));
-                },
-                entry.share
-            ));
+                    Minecraft.getInstance().gui.setScreen(new CoordinatesListScreen(currentPage));
+                })
+                .bounds(shareX, rowY, ICON_SIZE, ICON_SIZE)
+                .build()
+            );
 
             // "Edit Description" button
             int descX = this.width - ICON_SIZE - LEFT_MARGIN - DESC_BUTTON_WIDTH - ICON_GAP;
-            this.addDrawableChild(
-                ButtonWidget.builder(Text.translatable(CoordinatesApp.MOD_ID + ".button.edit_description"), button ->
-                    MinecraftClient.getInstance().setScreen(new DescriptionEditScreen(this, entry)))
-                    .dimensions(descX, rowY, DESC_BUTTON_WIDTH, ICON_SIZE)
+            this.addRenderableWidget(
+                Button.builder(Component.translatable(CoordinatesApp.MOD_ID + ".button.edit_description"), button ->
+                    Minecraft.getInstance().gui.setScreen(new DescriptionEditScreen(this, entry)))
+                    .bounds(descX, rowY, DESC_BUTTON_WIDTH, ICON_SIZE)
                     .build()
             );
 
             // Delete button (Trash can icon "🗑")
             int deleteX = this.width - ICON_SIZE - LEFT_MARGIN;
-            this.addDrawableChild(
-                ButtonWidget.builder(Text.literal("🗑"), button -> {
+            this.addRenderableWidget(
+                Button.builder(Component.literal("🗑"), button -> {
                     if (entry.favorite) {
                         LOGGER.info("Cannot delete favorite entry");
                         return;
                     }
                     CoordinatesDataManager.removeEntry(entry);
-                    MinecraftClient.getInstance().setScreen(new CoordinatesListScreen(currentPage));
+                    Minecraft.getInstance().gui.setScreen(new CoordinatesListScreen(currentPage));
                 })
-                .dimensions(deleteX, rowY, ICON_SIZE, ICON_SIZE)
+                .bounds(deleteX, rowY, ICON_SIZE, ICON_SIZE)
                 .build()
             );
         }
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        super.render(context, mouseX, mouseY, delta);
+    public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+        super.extractRenderState(context, mouseX, mouseY, delta);
 
         renderTitle(context);
         renderEntriesText(context);
@@ -238,14 +225,14 @@ public class CoordinatesListScreen extends Screen {
     /**
      * Render title at top.
      */
-    private void renderTitle(DrawContext context) {
-        context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 10, 0xFFFFFFFF);
+    private void renderTitle(GuiGraphicsExtractor context) {
+        context.centeredText(this.font, this.title, this.width / 2, 10, 0xFFFFFFFF);
     }
 
     /**
      * Render text information for entries corresponding to current page.
      */
-    private void renderEntriesText(DrawContext context) {
+    private void renderEntriesText(GuiGraphicsExtractor context) {
         List<Coordinates> entries = new ArrayList<>(CoordinatesDataManager.getEntries());
         int totalEntries = entries.size();
         int startIndex = currentPage * entriesPerPage;
@@ -260,47 +247,29 @@ public class CoordinatesListScreen extends Screen {
 
             int displayIndex = i - startIndex;
             int row1y = TOP_MARGIN + displayIndex * ROW_HEIGHT + 2;
-            context.drawText(this.textRenderer, entry.getCoordinatesText(), x, row1y, 0xFFFFFFFF, true);
+            context.text(this.font, entry.getCoordinatesText(), x, row1y, 0xFFFFFFFF, true);
 
-            int row2y = row1y + this.textRenderer.fontHeight;
-            context.drawTexture(RenderPipelines.GUI_TEXTURED, IconTexture.getIcon(entry.icon), iconX, row2y, 0, 0, iconSize, iconSize, iconSize, iconSize);
-            context.drawText(this.textRenderer, entry.description, descX, row2y, 0xFFFFFFFF, true);
+            int row2y = row1y + this.font.lineHeight;
+            context.blit(RenderPipelines.GUI_TEXTURED, IconTexture.getIcon(entry.icon), iconX, row2y, 0, 0, iconSize, iconSize, iconSize, iconSize);
+            context.text(this.font, entry.description, descX, row2y, 0xFFFFFFFF, true);
         }
     }
 
     /**
      * Render pagination information at bottom.
      */
-    private void renderPaginationText(DrawContext context) {
+    private void renderPaginationText(GuiGraphicsExtractor context) {
         int paginationAreaY = this.height - PAGINATION_AREA_OFFSET;
         List<Coordinates> entries = new ArrayList<>(CoordinatesDataManager.getEntries());
         int totalEntries = entries.size();
         int totalPages = (totalEntries + entriesPerPage - 1) / entriesPerPage;
         String pageInfo = (currentPage + 1) + " / " + totalPages;
-        int textY = paginationAreaY + (PAGER_BUTTON_HEIGHT - this.textRenderer.fontHeight) / 2;
-        context.drawCenteredTextWithShadow(this.textRenderer, pageInfo, this.width / 2, textY, 0xFFFFFFFF);
+        int textY = paginationAreaY + (PAGER_BUTTON_HEIGHT - this.font.lineHeight) / 2;
+        context.centeredText(this.font, pageInfo, this.width / 2, textY, 0xFFFFFFFF);
     }
 
     @Override
-    public boolean shouldPause() {
+    public boolean isPauseScreen() {
         return false;
-    }
-
-    private class ToggleIconButton extends ButtonWidget {
-        private boolean toggled;
-
-        public ToggleIconButton(int x, int y, int width, int height, Text message, PressAction onPress, boolean toggled) {
-            super(x, y, width, height, message, onPress, ButtonWidget.DEFAULT_NARRATION_SUPPLIER);
-            this.toggled = toggled;
-        }
-
-        @Override
-        protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
-            super.renderWidget(context, mouseX, mouseY, delta);
-            if (!toggled) {
-                // If not toggled, add a semi-transparent overlay.
-                context.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0x80000000);
-            }
-        }
     }
 }
