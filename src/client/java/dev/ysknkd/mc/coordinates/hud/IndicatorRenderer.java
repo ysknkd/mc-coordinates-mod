@@ -107,9 +107,9 @@ public final class IndicatorRenderer implements HudElement {
             }
 
             // Convert world coordinates to screen coordinates
-            Optional<ScreenCoordinate> optionalCoord = calculateScreenCoordinate(worldPos, client, screenWidth, screenHeight);
+            Optional<ScreenProjection.Coordinate> optionalCoord = ScreenProjection.projectWorldToGui(client, camera, worldPos, screenWidth, screenHeight);
             if (!optionalCoord.isPresent()) continue;
-            ScreenCoordinate coord = optionalCoord.get();
+            ScreenProjection.Coordinate coord = optionalCoord.get();
 
             // Render the pin image texture (to be implemented according to texture rendering routines)
             int scaledPinWidth = Math.max(1, Math.round(pinWidth * scale));
@@ -137,46 +137,4 @@ public final class IndicatorRenderer implements HudElement {
         }
     }
 
-    /**
-     * Clamps the given value within the range [min, max].
-     *
-     * @param value The input value.
-     * @param min The minimum allowed value.
-     * @param max The maximum allowed value.
-     * @return The clamped value.
-     */
-    private static int clamp(int value, int min, int max) {
-        return Math.max(min, Math.min(value, max));
-    }
-
-    /**
-     * A helper class to hold screen coordinate data.
-     */
-    private static class ScreenCoordinate {
-        final int x, y;
-        ScreenCoordinate(int x, int y) {
-            this.x = x;
-            this.y = y;
-        }
-    }
-
-    /**
-     * Converts a world coordinate from a pinned entry into screen coordinates.
-     * Returns an empty Optional if the coordinate is not visible (e.g. behind the camera).
-     *
-     * @param entry The coordinate entry.
-     * @param viewProjMatrix The combined view-projection matrix.
-     * @param screenWidth Screen width.
-     * @param screenHeight Screen height.
-     * @return An Optional containing the screen coordinate if visible.
-     */
-    private static Optional<ScreenCoordinate> calculateScreenCoordinate(Vec3 worldPos, Minecraft client, int screenWidth, int screenHeight) {
-        Vec3 screenPos = client.gameRenderer.projectPointToScreen(worldPos);
-        if (screenPos == null || !screenPos.isFinite()) return Optional.empty();
-
-        int indicatorX = clamp((int) screenPos.x, 0, screenWidth);
-        int indicatorY = clamp((int) screenPos.y, 0, screenHeight);
-
-        return Optional.of(new ScreenCoordinate(indicatorX, indicatorY));
-    }
 }

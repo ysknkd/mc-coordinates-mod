@@ -6,6 +6,7 @@ import dev.ysknkd.mc.coordinates.store.PlayerCoordinates;
 import dev.ysknkd.mc.coordinates.util.IconTexture;
 import dev.ysknkd.mc.coordinates.util.Util;
 import dev.ysknkd.mc.coordinates.CoordinatesApp;
+import java.util.Optional;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.Camera;
@@ -93,11 +94,11 @@ public final class PlayerIndicatorRenderer implements HudElement {
                 scale = maxScale - (float)((distance - nearDistance) / (farDistance - nearDistance)) * (maxScale - minScale);
             }
 
-            // Convert world coordinates to screen coordinates
-            Vec3 screenPos = client.gameRenderer.projectPointToScreen(worldPos);
-            if (screenPos == null || !screenPos.isFinite()) continue;
-            int screenX = clamp((int) screenPos.x, 0, screenWidth);
-            int screenY = clamp((int) screenPos.y, 0, screenHeight);
+            Optional<ScreenProjection.Coordinate> optionalCoord = ScreenProjection.projectWorldToGui(client, camera, worldPos, screenWidth, screenHeight);
+            if (!optionalCoord.isPresent()) continue;
+            ScreenProjection.Coordinate coord = optionalCoord.get();
+            int screenX = coord.x;
+            int screenY = coord.y;
 
             // Retrieve the player's icon (skin) from their GameProfile
             Identifier texture = IconTexture.getPlayerIcon(playerEntity.uuid, playerEntity.name);
@@ -130,15 +131,4 @@ public final class PlayerIndicatorRenderer implements HudElement {
         }
     }
 
-    /**
-     * Clamps the given value within the specified range.
-     *
-     * @param value The value to clamp.
-     * @param min The minimum allowed value.
-     * @param max The maximum allowed value.
-     * @return The clamped value.
-     */
-    private static int clamp(int value, int min, int max) {
-        return Math.max(min, Math.min(value, max));
-    }
 }
