@@ -103,8 +103,10 @@ public final class PlayerIndicatorRenderer implements HudElement {
             // Retrieve the player's icon (skin) from their GameProfile
             Identifier texture = IconTexture.getPlayerIcon(playerEntity.uuid, playerEntity.name);
 
-            // Draw the icon (icon size is 16x16 pixels)
+            // Draw the face and hat layers from the 64x64 player skin.
             final int iconSize = 16;
+            final int faceSize = 8;
+            final int skinSize = 64;
             int scaledIconSize = Math.max(1, Math.round(iconSize * scale));
             int drawX = screenX - scaledIconSize / 2;
             int drawY = screenY - scaledIconSize; // Adjust to align the bottom center of the icon with the origin
@@ -112,9 +114,20 @@ public final class PlayerIndicatorRenderer implements HudElement {
                 RenderPipelines.GUI_TEXTURED,
                 texture,
                 drawX, drawY,
-                0.0F, 0.0F,
+                8.0F, 8.0F,
                 scaledIconSize, scaledIconSize,
-                iconSize, iconSize,
+                faceSize, faceSize,
+                skinSize, skinSize,
+                tintColor
+            );
+            context.blit(
+                RenderPipelines.GUI_TEXTURED,
+                texture,
+                drawX, drawY,
+                40.0F, 8.0F,
+                scaledIconSize, scaledIconSize,
+                faceSize, faceSize,
+                skinSize, skinSize,
                 tintColor
             );
 

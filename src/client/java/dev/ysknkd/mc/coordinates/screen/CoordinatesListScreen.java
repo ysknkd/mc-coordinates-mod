@@ -149,42 +149,36 @@ public class CoordinatesListScreen extends Screen {
 
             // Favorite toggle button (use entry.icon)
             this.addRenderableWidget(
-                Button.builder(Component.literal("☆"), button -> {
+                new ToggleIconButton(LEFT_MARGIN, rowY, ICON_SIZE, ICON_SIZE, Component.literal("☆"), button -> {
                     entry.favorite = !entry.favorite;
                     Minecraft.getInstance().gui.setScreen(new CoordinatesListScreen(currentPage));
-                })
-                .bounds(LEFT_MARGIN, rowY, ICON_SIZE, ICON_SIZE)
-                .build()
+                }, entry.favorite)
             );
 
             // Pin toggle button
             int pinX = LEFT_MARGIN + ICON_SIZE + ICON_GAP;
             this.addRenderableWidget(
-                Button.builder(Component.literal("📌"), button -> {
+                new ToggleIconButton(pinX, rowY, ICON_SIZE, ICON_SIZE, Component.literal("📌"), button -> {
                     entry.pinned = !entry.pinned;
                     if (entry.share) {
                         // If valid, treat as shared state and always share
                         ShareCoordinatesClientHandler.send(entry);
                     }
                     Minecraft.getInstance().gui.setScreen(new CoordinatesListScreen(currentPage));
-                })
-                .bounds(pinX, rowY, ICON_SIZE, ICON_SIZE)
-                .build()
+                }, entry.pinned)
             );
 
             // Share button to toggle
             int shareX = LEFT_MARGIN + (ICON_SIZE + ICON_GAP) * 2;
             this.addRenderableWidget(
-                Button.builder(Component.literal("🔗"), button -> {
+                new ToggleIconButton(shareX, rowY, ICON_SIZE, ICON_SIZE, Component.literal("🔗"), button -> {
                     entry.share = !entry.share;
                     if (entry.share) {
                         // If valid, treat as shared state and always share
                         ShareCoordinatesClientHandler.send(entry);
                     }
                     Minecraft.getInstance().gui.setScreen(new CoordinatesListScreen(currentPage));
-                })
-                .bounds(shareX, rowY, ICON_SIZE, ICON_SIZE)
-                .build()
+                }, entry.share)
             );
 
             // "Edit Description" button
@@ -271,5 +265,23 @@ public class CoordinatesListScreen extends Screen {
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+
+    private static class ToggleIconButton extends Button {
+        private final boolean toggled;
+
+        ToggleIconButton(int x, int y, int width, int height, Component message, OnPress onPress, boolean toggled) {
+            super(x, y, width, height, message, onPress, DEFAULT_NARRATION);
+            this.toggled = toggled;
+        }
+
+        @Override
+        protected void extractContents(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+            extractDefaultSprite(context);
+            extractDefaultLabel(context.textRendererForWidget(this, GuiGraphicsExtractor.HoveredTextEffects.NONE));
+            if (!toggled) {
+                context.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0x80000000);
+            }
+        }
     }
 }
