@@ -4,27 +4,28 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.Context;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.PlayPayloadHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 
 public class ShareCoordinatesHandler implements PlayPayloadHandler<ShareCoordinatesPayload> {
     
     public static void register() {
-        PayloadTypeRegistry.playC2S().register(ShareCoordinatesPayload.ID, ShareCoordinatesPayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(ShareCoordinatesPayload.ID, ShareCoordinatesPayload.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(ShareCoordinatesPayload.ID, ShareCoordinatesPayload.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(ShareCoordinatesPayload.ID, ShareCoordinatesPayload.CODEC);
 
         ServerPlayNetworking.registerGlobalReceiver(ShareCoordinatesPayload.ID, new ShareCoordinatesHandler());
     }
 
     @Override
     public void receive(ShareCoordinatesPayload payload, Context context) {
-        ServerPlayerEntity senderPlayer = context.player();
+        ServerPlayer senderPlayer = context.player();
 
         context.server().execute(() -> {
-            ShareCoordinatesPayload outgoing = new ShareCoordinatesPayload(senderPlayer.getUuid(), payload.uuid(), payload.x(),
+            ShareCoordinatesPayload outgoing = new ShareCoordinatesPayload(senderPlayer.getUUID(), payload.uuid(), payload.x(),
                     payload.y(), payload.z(), payload.description(), payload.world(), payload.pinned(), payload.icon());
 
-            for (ServerPlayerEntity target : context.server().getPlayerManager().getPlayerList()) {
-                if (!target.getUuid().equals(senderPlayer.getUuid())) {
+            for (ServerPlayer target : context.server().getPlayerList().getPlayers()) {
+                if (!target.getUUID().equals(senderPlayer.getUUID())
+                        && ServerPlayNetworking.canSend(target, ShareCoordinatesPayload.ID)) {
                     ServerPlayNetworking.send(target, outgoing);
                 }
             }

@@ -9,15 +9,15 @@ import dev.ysknkd.mc.coordinates.store.Coordinates;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 
 public class ShareCoordinatesClientHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CoordinatesApp.MOD_ID);
 
     public static void register() {
-        PayloadTypeRegistry.playC2S().register(ShareCoordinatesPayload.ID, ShareCoordinatesPayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(ShareCoordinatesPayload.ID, ShareCoordinatesPayload.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(ShareCoordinatesPayload.ID, ShareCoordinatesPayload.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(ShareCoordinatesPayload.ID, ShareCoordinatesPayload.CODEC);
 
         ClientPlayNetworking.registerGlobalReceiver(ShareCoordinatesPayload.ID, (payload, context) -> {
             context.client().execute(() -> {
@@ -31,11 +31,11 @@ public class ShareCoordinatesClientHandler {
     }
     
     public static void send(Coordinates entry) {
-        MinecraftClient client = MinecraftClient.getInstance();
+        Minecraft client = Minecraft.getInstance();
         if (client.player != null) {
             // Use the current player's UUID for the sender
             ShareCoordinatesPayload payload = new ShareCoordinatesPayload(
-                    client.player.getUuid(),
+                    client.player.getUUID(),
                     entry.uuid,
                     entry.x,
                     entry.y,

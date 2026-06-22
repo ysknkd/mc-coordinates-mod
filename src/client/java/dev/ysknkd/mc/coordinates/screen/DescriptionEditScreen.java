@@ -5,12 +5,14 @@ import dev.ysknkd.mc.coordinates.store.Coordinates;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.network.chat.Component;
 
 /**
  * Screen for editing the description.
@@ -21,17 +23,17 @@ public class DescriptionEditScreen extends Screen {
 
     private final Screen parent;
     private final Coordinates entry;
-    private TextFieldWidget textField;
+    private EditBox textField;
 
     public DescriptionEditScreen(Screen parent, Coordinates entry) {
-        super(Text.translatable(CoordinatesApp.MOD_ID + ".description.label"));
+        super(Component.translatable(CoordinatesApp.MOD_ID + ".description.label"));
         this.parent = parent;
         this.entry = entry;
     }
 
     @Override
-    public void close() {
-        MinecraftClient.getInstance().setScreen(this.parent);
+    public void onClose() {
+        Minecraft.getInstance().gui.setScreen(this.parent);
     }
 
     @Override
@@ -41,52 +43,48 @@ public class DescriptionEditScreen extends Screen {
         int textFieldHeight = 20;
         int centerX = this.width / 2;
         int centerY = this.height / 2;
-        textField = new TextFieldWidget(this.textRenderer, centerX - textFieldWidth / 2, centerY - textFieldHeight / 2, textFieldWidth, textFieldHeight, Text.translatable(CoordinatesApp.MOD_ID + ".description.label"));
-        textField.setText(entry.description);
-        textField.setChangedListener(text -> {});
-        this.addSelectableChild(textField);
+        textField = new EditBox(this.font, centerX - textFieldWidth / 2, centerY - textFieldHeight / 2, textFieldWidth, textFieldHeight, Component.translatable(CoordinatesApp.MOD_ID + ".description.label"));
+        textField.setValue(entry.description);
+        textField.setResponder(text -> {});
+        this.addRenderableWidget(textField);
         textField.setFocused(true);
 
         // "Save" button
-        this.addDrawableChild(
-            ButtonWidget.builder(Text.translatable(CoordinatesApp.MOD_ID + ".button.save"), button -> {
-                entry.description = textField.getText();
-                close();
+        this.addRenderableWidget(
+            Button.builder(Component.translatable(CoordinatesApp.MOD_ID + ".button.save"), button -> {
+                entry.description = textField.getValue();
+                onClose();
             })
-            .dimensions(centerX - textFieldWidth / 2, centerY + textFieldHeight, textFieldWidth / 2 - 2, 20)
+            .bounds(centerX - textFieldWidth / 2, centerY + textFieldHeight, textFieldWidth / 2 - 2, 20)
             .build()
         );
 
         // "Cancel" button
-        this.addDrawableChild(
-            ButtonWidget.builder(Text.translatable(CoordinatesApp.MOD_ID + ".button.cancel"), button -> {
-                close();
+        this.addRenderableWidget(
+            Button.builder(Component.translatable(CoordinatesApp.MOD_ID + ".button.cancel"), button -> {
+                onClose();
             })
-            .dimensions(centerX + 2, centerY + textFieldHeight, textFieldWidth / 2 - 2, 20)
+            .bounds(centerX + 2, centerY + textFieldHeight, textFieldWidth / 2 - 2, 20)
             .build()
         );
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        // renderBackground() is called automatically by super.render() in 1.21.6
-        super.render(context, mouseX, mouseY, delta);
+    public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+        super.extractRenderState(context, mouseX, mouseY, delta);
         
         // Draw the title
-        context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 10, 0xFFFFFFFF);
-
-        // Render the text field
-        textField.render(context, mouseX, mouseY, delta);
+        context.centeredText(this.font, this.title, this.width / 2, 10, 0xFFFFFFFF);
     }
 
     @Override
-    public boolean shouldPause() {
+    public boolean isPauseScreen() {
         return false;
     }
 
     // Forward key input to the text field
     @Override
-    public boolean keyPressed(net.minecraft.client.input.KeyInput input) {
+    public boolean keyPressed(KeyEvent input) {
         if (textField.isFocused()) {
             textField.keyPressed(input);
             return true;
@@ -95,7 +93,7 @@ public class DescriptionEditScreen extends Screen {
     }
 
     @Override
-    public boolean charTyped(net.minecraft.client.input.CharInput input) {
+    public boolean charTyped(CharacterEvent input) {
         if (textField.isFocused()) {
             textField.charTyped(input);
             return true;

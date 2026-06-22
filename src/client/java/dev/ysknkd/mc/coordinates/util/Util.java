@@ -13,54 +13,54 @@ import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
 import com.mojang.authlib.GameProfile;
-import net.minecraft.util.WorldSavePath;
+import net.minecraft.world.level.storage.LevelResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ServerInfo;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.server.integrated.IntegratedServer;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ServerData;
+import net.minecraft.client.server.IntegratedServer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.world.level.biome.Biome;
 
 public class Util {
     private static final Logger LOGGER = LoggerFactory.getLogger(CoordinatesApp.MOD_ID);
 
     /**
-     * 指定された MinecraftClient から現在のワールド名を取得し、"minecraft:" の接頭辞を取り除いて返します。
+     * 指定された Minecraft から現在のワールド名を取得し、"minecraft:" の接頭辞を取り除いて返します。
      *
-     * @param client MinecraftClient のインスタンス
+     * @param client Minecraft のインスタンス
      * @return 現在のワールド名、もしくはワールド情報が取得できない場合は "unknown"
      */
-    public static String getCurrentWorldName(MinecraftClient client) {
-        if (client == null || client.world == null) {
+    public static String getCurrentWorldName(Minecraft client) {
+        if (client == null || client.level == null) {
             return "unknown";
         }
-        return client.world.getRegistryKey().getValue().toString();
+        return client.level.dimension().identifier().toString();
     }
 
    /**
-     * 指定された MinecraftClient からバイオーム名を返します。<br>
+     * 指定された Minecraft からバイオーム名を返します。<br>
      *
-     * @param client MinecraftClient のインスタンス
+     * @param client Minecraft のインスタンス
      * @return バイオーム名（例: "plains"）
      */
-    public static String getBiome(MinecraftClient client) {
-        if (client == null || client.player == null || client.world == null) {
+    public static String getBiome(Minecraft client) {
+        if (client == null || client.player == null || client.level == null) {
             return "unknown";
         }
-        BlockPos pos = client.player.getBlockPos();
-        RegistryEntry<Biome> biome = client.world.getBiome(pos);
-        return biome.getIdAsString().replace("minecraft:", "");
+        BlockPos pos = client.player.blockPosition();
+        Holder<Biome> biome = client.level.getBiome(pos);
+        return biome.getRegisteredName().replace("minecraft:", "");
     }
 
-    public static GameProfile getGameProfileByUuid(MinecraftClient client, UUID uuid) {
-        if (client == null || client.player == null) {
+    public static GameProfile getGameProfileByUuid(Minecraft client, UUID uuid) {
+        if (client == null || client.player == null || client.level == null) {
             return null;
         }
-        return client.world.getPlayers().stream()
-            .filter(player -> player.getUuid().equals(uuid))
+        return client.level.players().stream()
+            .filter(player -> player.getUUID().equals(uuid))
             .findFirst()
             .map(player -> player.getGameProfile())
             .orElse(null);
@@ -74,7 +74,7 @@ public class Util {
      * なければ新規生成して保存する。
      */
     public static UUID getOrCreateWorldUniqueId(IntegratedServer server) {
-        Path worldFolder = server.getSavePath(WorldSavePath.ROOT);
+        Path worldFolder = server.getWorldPath(LevelResource.ROOT);
         LOGGER.info(worldFolder.toString());
         // => シングルプレイのワールドフォルダ
         Path modIdFile = worldFolder.resolve(UNIQUE_ID_FILE_NAME);
@@ -116,10 +116,10 @@ public class Util {
     /**
      * 現在のクライアントが存在するワールドに基づき、
      * 「ワールド＋ディメンション」を一意に区別できるID文字列を生成して返す。
-     * @param client    MinecraftClient
+     * @param client    Minecraft
      * @return 生成されたワールド識別子（例：MD5ハッシュ文字列など）
      */
-    public static String createWorldIdentifier(MinecraftClient client) {
+    public static String createWorldIdentifier(Minecraft client) {
         if (client == null) {
             return "unknown";
         }
@@ -127,9 +127,9 @@ public class Util {
         String baseName;
 
         // シングルプレイかどうかで分岐
-        if (client.isInSingleplayer()) {
+        if (client.hasSingleplayerServer()) {
             // シングル -> 統合サーバー(IntegratedServer)からレベル名を取得
-            IntegratedServer integratedServer = client.getServer();
+            IntegratedServer integratedServer = client.getSingleplayerServer();
             if (integratedServer != null) {
                 baseName = Util.getOrCreateWorldUniqueId(integratedServer).toString();
             } else {
@@ -137,9 +137,9 @@ public class Util {
             }
         } else {
             // マルチ -> サーバーリストの情報からアドレスを取得
-            ServerInfo serverInfo = client.getCurrentServerEntry();
+            ServerData serverInfo = client.getCurrentServer();
             if (serverInfo != null) {
-                baseName = serverInfo.address; // 例: "example.com:25565"
+                baseName = serverInfo.ip; // 例: "example.com:25565"
             } else {
                 // サーバーリストにない場合など
                 baseName = "MultiPlayerUnknown";

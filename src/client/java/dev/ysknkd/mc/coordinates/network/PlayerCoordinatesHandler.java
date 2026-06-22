@@ -10,14 +10,14 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 public class PlayerCoordinatesHandler implements ClientPlayNetworking.PlayPayloadHandler<PlayerCoordinatesPayload> {
 
     public static void register() {
-        PayloadTypeRegistry.playS2C().register(PlayerCoordinatesPayload.ID, PlayerCoordinatesPayload.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(PlayerCoordinatesPayload.ID, PlayerCoordinatesPayload.CODEC);
         ClientPlayNetworking.registerGlobalReceiver(PlayerCoordinatesPayload.ID, new PlayerCoordinatesHandler());
     }
 
     @Override
     public void receive(PlayerCoordinatesPayload payload, Context context) {
         context.client().execute(() -> {
-            if (context.client().player != null && !context.client().player.getUuid().equals(payload.uuid())) {
+            if (context.client().player != null && !context.client().player.getUUID().equals(payload.uuid())) {
                 PlayerCoordinatesCache.update(new PlayerCoordinates(payload.uuid(), payload.x(), payload.y(), payload.z(), payload.name(), payload.world()));
             }
         });

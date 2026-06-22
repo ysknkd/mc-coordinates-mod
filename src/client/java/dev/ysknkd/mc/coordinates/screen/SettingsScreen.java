@@ -2,11 +2,11 @@ package dev.ysknkd.mc.coordinates.screen;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.SliderWidget;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.AbstractSliderButton;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 import dev.ysknkd.mc.coordinates.CoordinatesApp;
 import dev.ysknkd.mc.coordinates.config.Config;
 
@@ -19,13 +19,13 @@ public class SettingsScreen extends Screen {
     private final Screen parent;
 
     public SettingsScreen(Screen parent) {
-        super(Text.translatable(CoordinatesApp.MOD_ID + ".settings.title"));
+        super(Component.translatable(CoordinatesApp.MOD_ID + ".settings.title"));
         this.parent = parent;
     }
 
     @Override
-    public void close() {
-        MinecraftClient.getInstance().setScreen(parent);
+    public void onClose() {
+        Minecraft.getInstance().gui.setScreen(parent);
     }
 
     @Override
@@ -34,60 +34,60 @@ public class SettingsScreen extends Screen {
         int centerY = this.height / 2 - 30; // Adjusted to make room for the new slider
 
         // Retrieve text resource based on the current boolean value
-        Text pinStatusText = Config.getDefaultPinState() ?
-                Text.translatable(CoordinatesApp.MOD_ID + ".settings.enabled") :
-                Text.translatable(CoordinatesApp.MOD_ID + ".settings.disabled");
+        Component pinStatusText = Config.getDefaultPinState() ?
+                Component.translatable(CoordinatesApp.MOD_ID + ".settings.enabled") :
+                Component.translatable(CoordinatesApp.MOD_ID + ".settings.disabled");
 
-        this.addDrawableChild(
-            ButtonWidget.builder(
-                Text.translatable(CoordinatesApp.MOD_ID + ".settings.pin_state.title", pinStatusText),
+        this.addRenderableWidget(
+            Button.builder(
+                Component.translatable(CoordinatesApp.MOD_ID + ".settings.pin_state.title", pinStatusText),
                 button -> {
                     Config.toggleDefaultPinState();
-                    Text newStatus = Config.getDefaultPinState() ?
-                            Text.translatable(CoordinatesApp.MOD_ID + ".settings.enabled") :
-                            Text.translatable(CoordinatesApp.MOD_ID + ".settings.disabled");
-                    button.setMessage(Text.translatable(CoordinatesApp.MOD_ID + ".settings.pin_state.title", newStatus));
+                    Component newStatus = Config.getDefaultPinState() ?
+                            Component.translatable(CoordinatesApp.MOD_ID + ".settings.enabled") :
+                            Component.translatable(CoordinatesApp.MOD_ID + ".settings.disabled");
+                    button.setMessage(Component.translatable(CoordinatesApp.MOD_ID + ".settings.pin_state.title", newStatus));
                 })
-            .dimensions(centerX - 100, centerY, 200, 20)
+            .bounds(centerX - 100, centerY, 200, 20)
             .build()
         );
 
         // Player indicator minimum distance slider
         int currentDistance = Config.getPlayerIndicatorMinDistance();
-        this.addDrawableChild(new PlayerIndicatorDistanceSlider(
+        this.addRenderableWidget(new PlayerIndicatorDistanceSlider(
             centerX - 100, centerY + 30, 200, 20,
-            Text.translatable(CoordinatesApp.MOD_ID + ".settings.player_indicator_distance", currentDistance),
+            Component.translatable(CoordinatesApp.MOD_ID + ".settings.player_indicator_distance", currentDistance),
             currentDistance
         ));
 
         // Back button: returns to CoordinatesListScreen
-        this.addDrawableChild(
-            ButtonWidget.builder(Text.translatable(CoordinatesApp.MOD_ID + ".button.back"), button -> close())
-            .dimensions(centerX - 50, centerY + 60, 100, 20)
+        this.addRenderableWidget(
+            Button.builder(Component.translatable(CoordinatesApp.MOD_ID + ".button.back"), button -> onClose())
+            .bounds(centerX - 50, centerY + 60, 100, 20)
             .build()
         );
     }
 
     @Override
-    public boolean shouldPause() {
+    public boolean isPauseScreen() {
         return false;
     }
     
     /**
      * Slider widget for adjusting the player indicator minimum distance
      */
-    private static class PlayerIndicatorDistanceSlider extends SliderWidget {
+    private static class PlayerIndicatorDistanceSlider extends AbstractSliderButton {
         private static final int MIN_DISTANCE = 0;
         private static final int MAX_DISTANCE = 50;
         
-        public PlayerIndicatorDistanceSlider(int x, int y, int width, int height, Text text, int value) {
+        public PlayerIndicatorDistanceSlider(int x, int y, int width, int height, Component text, int value) {
             super(x, y, width, height, text, (double)(value - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE));
         }
         
         @Override
         protected void updateMessage() {
             int value = MIN_DISTANCE + (int)(this.value * (MAX_DISTANCE - MIN_DISTANCE));
-            this.setMessage(Text.translatable(CoordinatesApp.MOD_ID + ".settings.player_indicator_distance", value));
+            this.setMessage(Component.translatable(CoordinatesApp.MOD_ID + ".settings.player_indicator_distance", value));
         }
         
         @Override
@@ -96,4 +96,4 @@ public class SettingsScreen extends Screen {
             Config.setPlayerIndicatorMinDistance(value);
         }
     }
-} 
+}

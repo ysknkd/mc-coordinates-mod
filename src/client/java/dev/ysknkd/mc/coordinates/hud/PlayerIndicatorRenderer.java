@@ -5,47 +5,43 @@ import dev.ysknkd.mc.coordinates.store.PlayerCoordinatesCache;
 import dev.ysknkd.mc.coordinates.store.PlayerCoordinates;
 import dev.ysknkd.mc.coordinates.util.IconTexture;
 import dev.ysknkd.mc.coordinates.util.Util;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.option.SimpleOption;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.render.RenderTickCounter;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Vec3d;
-import org.joml.Matrix4f;
-import org.joml.Vector3f;
-import org.joml.Vector4f;
+import dev.ysknkd.mc.coordinates.CoordinatesApp;
+import java.util.Optional;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.minecraft.client.Camera;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Renders each player's icon, distance from the camera, and their name on the HUD based on their position.
  */
-public final class PlayerIndicatorRenderer implements HudRenderCallback {
+public final class PlayerIndicatorRenderer implements HudElement {
 
     private long frozenTime;
 
     public static void register() {
-        HudRenderCallback.EVENT.register(new PlayerIndicatorRenderer());
+        HudElementRegistry.addLast(
+                Identifier.fromNamespaceAndPath(CoordinatesApp.MOD_ID, "player_indicators"),
+                new PlayerIndicatorRenderer());
     }
 
     @Override
-    public void onHudRender(DrawContext context, RenderTickCounter tickCounter) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.world == null) return;
+    public void extractRenderState(GuiGraphicsExtractor context, DeltaTracker tickCounter) {
+        Minecraft client = Minecraft.getInstance();
+        if (client.level == null) return;
 
-        int screenWidth = context.getScaledWindowWidth();
-        int screenHeight = context.getScaledWindowHeight();
-        SimpleOption<Integer> fovOption = client.options.getFov();
-        Matrix4f projectionMatrix = client.gameRenderer.getBasicProjectionMatrix(fovOption.getValue());
-        Camera camera = client.gameRenderer.getCamera();
-        Matrix4f viewMatrix = computeViewMatrix(camera);
-        Matrix4f viewProjMatrix = projectionMatrix.mul(viewMatrix, new Matrix4f());
+        int screenWidth = context.guiWidth();
+        int screenHeight = context.guiHeight();
+        Camera camera = client.gameRenderer.mainCamera();
 
         // Animation for alpha fade in/out (1-second cycle)
         long time = System.currentTimeMillis();
-        if (client.currentScreen != null) {
+        if (client.gui.screen() != null) {
             if (frozenTime == -1) {
                 frozenTime = System.currentTimeMillis();
             }
@@ -76,8 +72,9 @@ public final class PlayerIndicatorRenderer implements HudRenderCallback {
             float worldZ = (float)(Math.floor(playerEntity.z) + 0.5);
 
             // Calculate distance from the camera
-            Vec3d camPos = camera.getPos();
-            double distance = camPos.distanceTo(new Vec3d(worldX, worldY, worldZ));
+            Vec3 worldPos = new Vec3(worldX, worldY, worldZ);
+            Vec3 camPos = camera.position();
+            double distance = camPos.distanceTo(worldPos);
 
             // Do not display the indicator if the distance is less than the configured minimum distance
             if (distance < Config.getPlayerIndicatorMinDistance()) {
@@ -97,76 +94,54 @@ public final class PlayerIndicatorRenderer implements HudRenderCallback {
                 scale = maxScale - (float)((distance - nearDistance) / (farDistance - nearDistance)) * (maxScale - minScale);
             }
 
-            // Convert world coordinates to screen coordinates
-            Vector4f posVec = new Vector4f(worldX, worldY, worldZ, 1.0f);
-            viewProjMatrix.transform(posVec);
-            if (posVec.w <= 0.0f) continue;
-            float ndcX = posVec.x / posVec.w;
-            float ndcY = posVec.y / posVec.w;
-            int screenX = clamp((int)((ndcX + 1.0f) * 0.5f * screenWidth), 0, screenWidth);
-            int screenY = clamp((int)((1.0f - ndcY) * 0.5f * screenHeight), 0, screenHeight);
-
-            // Render the player's icon (skin texture)
-            context.getMatrices().pushMatrix();
-            context.getMatrices().translate(screenX, screenY);
-            context.getMatrices().scale(scale, scale);
+            Optional<ScreenProjection.Coordinate> optionalCoord = ScreenProjection.projectWorldToGui(client, camera, worldPos, screenWidth, screenHeight);
+            if (!optionalCoord.isPresent()) continue;
+            ScreenProjection.Coordinate coord = optionalCoord.get();
+            int screenX = coord.x;
+            int screenY = coord.y;
 
             // Retrieve the player's icon (skin) from their GameProfile
             Identifier texture = IconTexture.getPlayerIcon(playerEntity.uuid, playerEntity.name);
 
-            // Draw the icon (icon size is 16x16 pixels)
+            // Draw the face and hat layers from the 64x64 player skin.
             final int iconSize = 16;
-            int drawX = -iconSize / 2;
-            int drawY = -iconSize; // Adjust to align the bottom center of the icon with the origin
-            context.drawTexture(
+            final int faceSize = 8;
+            final int skinSize = 64;
+            int scaledIconSize = Math.max(1, Math.round(iconSize * scale));
+            int drawX = screenX - scaledIconSize / 2;
+            int drawY = screenY - scaledIconSize; // Adjust to align the bottom center of the icon with the origin
+            context.blit(
                 RenderPipelines.GUI_TEXTURED,
                 texture,
                 drawX, drawY,
-                0.0F, 0.0F,
-                iconSize, iconSize,
-                iconSize, iconSize,
+                8.0F, 8.0F,
+                scaledIconSize, scaledIconSize,
+                faceSize, faceSize,
+                skinSize, skinSize,
                 tintColor
             );
-            context.getMatrices().popMatrix();
+            context.blit(
+                RenderPipelines.GUI_TEXTURED,
+                texture,
+                drawX, drawY,
+                40.0F, 8.0F,
+                scaledIconSize, scaledIconSize,
+                faceSize, faceSize,
+                skinSize, skinSize,
+                tintColor
+            );
 
             // Render distance text
             String distanceText = String.format("%.1f", distance);
             int textColor = 0xAAFFFFFF; // Semi-transparent white
-            int distanceTextWidth = client.textRenderer.getWidth(distanceText);
-            context.drawText(client.textRenderer, distanceText, screenX - distanceTextWidth / 2, screenY + 8, textColor, false);
+            int distanceTextWidth = client.font.width(distanceText);
+            context.text(client.font, distanceText, screenX - distanceTextWidth / 2, screenY + 8, textColor, false);
 
             // Render the player's name
             String name = playerEntity.name;
-            int nameWidth = client.textRenderer.getWidth(name);
-            context.drawText(client.textRenderer, name, screenX - nameWidth / 2, screenY + 20, textColor, false);
+            int nameWidth = client.font.width(name);
+            context.text(client.font, name, screenX - nameWidth / 2, screenY + 20, textColor, false);
         }
     }
 
-    /**
-     * Computes the view matrix from the camera's position and rotation.
-     *
-     * @param camera The camera object containing position and rotation.
-     * @return The computed view matrix.
-     */
-    private static Matrix4f computeViewMatrix(Camera camera) {
-        Vec3d camPos = camera.getPos();
-        Vector3f eye = new Vector3f((float) camPos.x, (float) camPos.y, (float) camPos.z);
-        Vector3f forward = new Vector3f(0, 0, -1);
-        camera.getRotation().transform(forward);
-        Vector3f up = new Vector3f(0, 1, 0);
-        camera.getRotation().transform(up);
-        return new Matrix4f().lookAt(eye, new Vector3f(eye).add(forward), up);
-    }
-
-    /**
-     * Clamps the given value within the specified range.
-     *
-     * @param value The value to clamp.
-     * @param min The minimum allowed value.
-     * @param max The maximum allowed value.
-     * @return The clamped value.
-     */
-    private static int clamp(int value, int min, int max) {
-        return Math.max(min, Math.min(value, max));
-    }
 }
