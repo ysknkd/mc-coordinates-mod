@@ -2,8 +2,6 @@ package dev.ysknkd.mc.coordinates.event;
 
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal;
 
-import org.lwjgl.glfw.GLFW;
-
 import dev.ysknkd.mc.coordinates.screen.CoordinatesListScreen;
 import dev.ysknkd.mc.coordinates.CoordinatesApp;
 
@@ -19,8 +17,8 @@ public class CoordinatesListBinding {
     // Key binding for displaying the coordinates list (B key)
     private static final KeyMapping SHOW_COORDINATES_LIST_KEY = KeyMappingHelper.registerKeyMapping(
             new KeyMapping("key." + CoordinatesApp.MOD_ID + ".show_coordinates_list",
-                           InputConstants.Type.KEYSYM,
-                           GLFW.GLFW_KEY_B,
+                           InputConstants.Type.KEYBOARD,
+                           InputConstants.KEY_B,
                            CoordinatesSaveKeyBinding.COORDINATES_CATEGORY));
     
     private static boolean showListOnCommand = false;

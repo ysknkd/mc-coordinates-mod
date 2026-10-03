@@ -16,7 +16,7 @@ This is a Minecraft Fabric mod that allows players to record in-game coordinates
 
 **Project Structure:**
 - Built with Fabric Mod Loader for modern Minecraft versions
-- Uses Java 21 and Gradle with Fabric Loom plugin
+- Uses Java 25 and Gradle with Fabric Loom plugin
 - Outputs JAR to `build/libs/` directory
 
 ## Architecture
@@ -92,7 +92,7 @@ This is a Minecraft Fabric mod that allows players to record in-game coordinates
 ## Minecraft Version Migration Guide
 
 **Version Upgrade Process:**
-- Update dependency versions in `gradle.properties` (minecraft_version, yarn_mappings, loader_version, fabric_version)
+- Update dependency versions in `gradle.properties` (minecraft_version, loader_version, loom_version, fabric_version)
 - Adjust compatibility requirements in `fabric.mod.json`
 - Compile to identify API changes and compatibility issues
 - Address compilation errors systematically by priority
@@ -165,5 +165,5 @@ This is a Minecraft Fabric mod that allows players to record in-game coordinates
 
 - Mod ID: `mc-coordinates`
 - Supports both client and server environments
-- Requires Fabric API and Java 21+
+- Requires Fabric API and Java 25+
 - Compatible with modern Minecraft versions (check gradle.properties for current target)

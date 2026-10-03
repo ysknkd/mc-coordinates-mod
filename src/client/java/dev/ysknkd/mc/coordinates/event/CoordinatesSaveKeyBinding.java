@@ -2,8 +2,6 @@ package dev.ysknkd.mc.coordinates.event;
 
 import java.util.function.Consumer;
 
-import org.lwjgl.glfw.GLFW;
-
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
@@ -32,8 +30,8 @@ public class CoordinatesSaveKeyBinding implements Consumer<Minecraft> {
     // Key binding for saving coordinates (G key)
     private static final KeyMapping SAVE_COORDINATES_KEY = KeyMappingHelper.registerKeyMapping(new KeyMapping(
             "key." + CoordinatesApp.MOD_ID + ".save_coordinates",
-            InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_G,
+            InputConstants.Type.KEYBOARD,
+            InputConstants.KEY_G,
             COORDINATES_CATEGORY
     ));
     
